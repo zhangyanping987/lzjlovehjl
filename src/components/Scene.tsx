@@ -21,6 +21,7 @@ interface SceneProps {
   assetsReady: boolean
   viewMode: ViewMode
   onTransitionChange: (active: boolean) => void
+  onViewModeChange?: (mode: ViewMode) => void
 }
 
 function SceneContent({
@@ -33,6 +34,7 @@ function SceneContent({
   assetsReady,
   viewMode,
   onTransitionChange,
+  onViewModeChange,
 }: SceneProps) {
   const [introDone, setIntroDone] = useState(false)
   const [introProgress, setIntroProgress] = useState(0)
@@ -93,6 +95,7 @@ function SceneContent({
         enabled={controlsEnabled}
         viewMode={viewMode}
         transitioning={transitioning}
+        onViewModeChange={onViewModeChange}
       />
     </IntroContext.Provider>
   )

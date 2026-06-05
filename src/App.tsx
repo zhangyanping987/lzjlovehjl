@@ -28,6 +28,10 @@ export default function App() {
     setViewMode((m) => (m === 'outer' ? 'inner' : 'outer'))
   }, [])
 
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
+    setViewMode((current) => (current === mode ? current : mode))
+  }, [])
+
   useEffect(() => {
     loadPhotos()
       .then(setPhotos)
@@ -84,6 +88,7 @@ export default function App() {
           assetsReady={assetsReady}
           viewMode={viewMode}
           onTransitionChange={setViewTransitioning}
+          onViewModeChange={handleViewModeChange}
           onIntroComplete={() => setIntroDone(true)}
           onIntroProgress={(p) => {
             setIntroVisible(true)
@@ -121,7 +126,7 @@ export default function App() {
 
       <footer className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#020810] to-transparent px-4 py-4 text-center">
         <p className="text-xs text-zinc-500 sm:text-sm">
-          拖拽旋转 · 滚轮缩放 · 点击图片查看 · 切换球内/球外视角
+          拖拽旋转 · 滚轮/双指缩放 · 缩放到边界可穿入球内 · 点击图片查看
         </p>
       </footer>
 
