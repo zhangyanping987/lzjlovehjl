@@ -57,7 +57,7 @@ export default function App() {
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#020810]">
       <StarfieldBackground />
-      <HeartTrail enabled={introDone} />
+      <HeartTrail enabled={introDone && lightboxIndex === null} />
       <header className="pointer-events-none absolute left-0 right-0 top-0 z-10 bg-gradient-to-b from-[#020810] to-transparent px-4 py-5 text-center">
         <h1 className="text-lg font-medium tracking-wide text-white sm:text-xl">
           贺峻霖 · 3D 相册

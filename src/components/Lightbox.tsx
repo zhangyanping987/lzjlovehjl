@@ -54,6 +54,7 @@ export default function Lightbox({
 
   const startX = useRef(0)
   const rafRef = useRef(0)
+  const capturedPointerId = useRef<number | null>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const pendingIndexRef = useRef<number | null>(null)
@@ -109,6 +110,16 @@ export default function Lightbox({
     [],
   )
 
+  const releasePointerCapture = useCallback(() => {
+    const el = trackRef.current
+    const pointerId = capturedPointerId.current
+    if (el && pointerId !== null && el.hasPointerCapture(pointerId)) {
+      el.releasePointerCapture(pointerId)
+    }
+    capturedPointerId.current = null
+    setIsDragging(false)
+  }, [])
+
   useEffect(() => {
     document.body.classList.add('lightbox-open')
     setPhase('enter')
@@ -116,17 +127,19 @@ export default function Lightbox({
     runZoom(0, 1, () => setPhase('open'))
 
     return () => {
+      releasePointerCapture()
       document.body.classList.remove('lightbox-open')
       cancelAnimationFrame(rafRef.current)
     }
-  }, [runZoom])
+  }, [runZoom, releasePointerCapture])
 
   const requestClose = useCallback(() => {
     if (phase === 'leave') return
+    releasePointerCapture()
     setPhase('leave')
     setZoomProgress(1)
     runZoom(1, 0, onClose)
-  }, [onClose, phase, runZoom])
+  }, [onClose, phase, releasePointerCapture, runZoom])
 
   const commitIndex = useCallback(
     (targetIndex: number) => {
@@ -196,6 +209,7 @@ export default function Lightbox({
     setIsDragging(true)
     setInstant(true)
     trackRef.current?.setPointerCapture(e.pointerId)
+    capturedPointerId.current = e.pointerId
   }
 
   const onTrackPointerMove = (e: PointerEvent<HTMLDivElement>) => {
@@ -204,10 +218,12 @@ export default function Lightbox({
   }
 
   const onTrackPointerUp = (e: PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return
-    trackRef.current?.releasePointerCapture(e.pointerId)
+    const wasDragging = isDragging
+    const delta = e.clientX - startX.current
+    releasePointerCapture()
+    if (!wasDragging) return
     setInstant(false)
-    finishDrag(e.clientX - startX.current)
+    finishDrag(delta)
   }
 
   const onTransitionEnd = (e: TransitionEvent<HTMLDivElement>) => {

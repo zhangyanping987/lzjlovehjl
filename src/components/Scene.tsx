@@ -110,7 +110,6 @@ function SceneCanvas({
     <div
       className="absolute inset-0 z-[1] transition-opacity duration-200"
       style={{
-        visibility: interactive ? 'visible' : 'hidden',
         pointerEvents: interactive ? 'auto' : 'none',
       }}
     >

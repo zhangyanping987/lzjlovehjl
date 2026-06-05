@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { Html } from '@react-three/drei'
 import { useIntro } from '../context/IntroContext'
 import { usePerformance } from '../context/PerformanceContext'
@@ -34,6 +34,7 @@ export default function PhotoNode({
   const [failed, setFailed] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const settled = useRef(false)
+  const tapStart = useRef({ x: 0, y: 0, time: 0 })
 
   const revealStart = 0.1 + (photoIndex % 9) * 0.012
   const reveal = introActive
@@ -81,11 +82,21 @@ export default function PhotoNode({
     onError()
   }
 
-  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+  const handlePointerDown = (e: PointerEvent<HTMLDivElement>) => {
     e.stopPropagation()
-    if (!failed) {
-      onSelect(photo, photoIndex, rectFromDOM(e.currentTarget.getBoundingClientRect()))
-    }
+    tapStart.current = { x: e.clientX, y: e.clientY, time: performance.now() }
+  }
+
+  const handlePointerUp = (e: PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    if (failed || !introDone) return
+
+    const dx = e.clientX - tapStart.current.x
+    const dy = e.clientY - tapStart.current.y
+    const dt = performance.now() - tapStart.current.time
+    if (Math.hypot(dx, dy) > 12 || dt > 500) return
+
+    onSelect(photo, photoIndex, rectFromDOM(e.currentTarget.getBoundingClientRect()))
   }
 
   const size = hovered ? 96 : 72
@@ -108,7 +119,8 @@ export default function PhotoNode({
             height: size,
             transform: hovered ? 'scale(1.08)' : 'scale(1)',
           }}
-          onClick={handleClick}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
         >
