@@ -11,23 +11,13 @@ npm run dev
 
 ## 获取 / 刷新图片链接
 
-使用**百度图片搜索**，关键词已针对「贺峻霖 神图 / 壁纸高清 / 头像」等优化：
+图片外链会失效，需在本地重新搜图后 push 到 GitHub。**详细步骤见：[docs/刷新图片.md](./docs/刷新图片.md)**
 
 ```bash
 # 自动搜图，默认 150 张
 npm run fetch-photos -- --count 150
 
-# 自定义数量或关键词
-npm run fetch-photos -- --count 200
-npm run fetch-photos -- --keywords "贺峻霖 神图,贺峻霖 壁纸高清" --count 100
-
-# 从文件补充 URL（复制 urls.example.txt 为 urls.txt）
-npm run fetch-photos -- --from-file urls.txt --count 150
-```
-
-更新后推送：
-
-```bash
+# 更新后推送
 git add public/photos.json
 git commit -m "refresh photo urls"
 git push

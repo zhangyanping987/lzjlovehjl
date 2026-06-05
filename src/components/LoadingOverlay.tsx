@@ -19,7 +19,7 @@ export default function LoadingOverlay({
   const percent = total > 0 ? Math.round((done / total) * 100) : 0
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-[#0a0a0f]/85 backdrop-blur-sm">
+    <div className="pointer-events-auto absolute inset-0 z-20 flex items-center justify-center bg-[#020810]/90 backdrop-blur-sm">
       <div className="w-[min(90vw,320px)] text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
         <p className="text-sm text-zinc-300">

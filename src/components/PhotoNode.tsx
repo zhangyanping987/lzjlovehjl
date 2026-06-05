@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { Html } from '@react-three/drei'
 import { useIntro } from '../context/IntroContext'
 import type { Photo } from '../data/photos'
@@ -15,6 +15,8 @@ interface PhotoNodeProps {
   onError: () => void
 }
 
+const LOAD_TIMEOUT_MS = 15000
+
 export default function PhotoNode({
   photo,
   photoIndex,
@@ -25,16 +27,57 @@ export default function PhotoNode({
   onError,
 }: PhotoNodeProps) {
 
-  const { active: introActive, progress } = useIntro()
+  const { active: introActive, progress, done: introDone } = useIntro()
   const [hovered, setHovered] = useState(false)
   const [failed, setFailed] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const settled = useRef(false)
 
   const revealStart = 0.1 + (photoIndex % 9) * 0.012
   const reveal = introActive
     ? Math.max(0, Math.min(1, (progress - revealStart) / 0.38))
     : 1
-  const displayOpacity = loaded ? reveal : 0
+  const displayOpacity = loaded
+    ? introDone
+      ? 1
+      : introActive
+        ? reveal
+        : 0
+    : 0
+
+  useEffect(() => {
+    settled.current = false
+    setLoaded(false)
+    setFailed(false)
+  }, [photo.url])
+
+  useEffect(() => {
+    if (loaded || failed) return
+
+    const timer = window.setTimeout(() => {
+      if (!settled.current) {
+        settled.current = true
+        setFailed(true)
+        onError()
+      }
+    }, LOAD_TIMEOUT_MS)
+
+    return () => window.clearTimeout(timer)
+  }, [loaded, failed, photo.url, onError])
+
+  const markLoaded = () => {
+    if (settled.current) return
+    settled.current = true
+    setLoaded(true)
+    onLoad()
+  }
+
+  const markFailed = () => {
+    if (settled.current) return
+    settled.current = true
+    setFailed(true)
+    onError()
+  }
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation()
@@ -84,7 +127,7 @@ export default function PhotoNode({
             <img
               src={photo.url}
               alt={photo.title}
-              loading="lazy"
+              loading="eager"
               referrerPolicy="no-referrer"
               draggable={false}
               className="rounded-lg object-cover shadow-lg shadow-black/50 ring-1 ring-white/10"
@@ -102,14 +145,8 @@ export default function PhotoNode({
                     : undefined,
                 transition: introActive ? 'opacity 0.15s, filter 0.15s' : 'opacity 0.3s',
               }}
-              onLoad={() => {
-                setLoaded(true)
-                onLoad()
-              }}
-              onError={() => {
-                setFailed(true)
-                onError()
-              }}
+              onLoad={markLoaded}
+              onError={markFailed}
             />
           )}
         </div>

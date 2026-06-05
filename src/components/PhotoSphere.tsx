@@ -14,6 +14,7 @@ interface PhotoSphereProps {
   photos: Photo[]
   onSelect: (photo: Photo, index: number, origin: ImageRect) => void
   onLoadProgress: (loaded: number, failed: number, total: number) => void
+  preloadAll?: boolean
 }
 
 function depthToZIndex(dot: number) {
@@ -25,6 +26,7 @@ export default function PhotoSphere({
   photos,
   onSelect,
   onLoadProgress,
+  preloadAll = false,
 }: PhotoSphereProps) {
   const { camera } = useThree()
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE)
@@ -40,15 +42,21 @@ export default function PhotoSphere({
   )
 
   useEffect(() => {
-    setVisibleCount(Math.min(BATCH_SIZE, photos.length))
     setLoadedCount(0)
     setFailedCount(0)
     depthBuffer.current = new Array(photos.length).fill(500)
     setDepthZByIndex(new Array(photos.length).fill(500))
+    setVisibleCount(Math.min(BATCH_SIZE, photos.length))
   }, [photos])
 
   useEffect(() => {
-    if (visibleCount >= photos.length) return
+    if (preloadAll) {
+      setVisibleCount(photos.length)
+    }
+  }, [preloadAll, photos.length])
+
+  useEffect(() => {
+    if (preloadAll || visibleCount >= photos.length) return
 
     const scheduleNext = () => {
       setVisibleCount((c) => Math.min(c + BATCH_SIZE, photos.length))
@@ -61,7 +69,7 @@ export default function PhotoSphere({
 
     const id = globalThis.setTimeout(scheduleNext, 100)
     return () => globalThis.clearTimeout(id)
-  }, [visibleCount, photos.length])
+  }, [visibleCount, photos.length, preloadAll])
 
   useEffect(() => {
     onLoadProgress(loadedCount, failedCount, photos.length)

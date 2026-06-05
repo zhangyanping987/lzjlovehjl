@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import type { Group, PointLight } from 'three'
 
@@ -113,6 +113,13 @@ export default function IntroAnimation({
   const lightRef = useRef<PointLight>(null)
   const startTime = useRef<number | null>(null)
   const completed = useRef(false)
+
+  useEffect(() => {
+    if (active) {
+      startTime.current = null
+      completed.current = false
+    }
+  }, [active])
 
   useFrame((state) => {
     if (!active || completed.current) return

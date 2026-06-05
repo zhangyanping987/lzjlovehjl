@@ -43,6 +43,9 @@ export default function App() {
     [],
   )
 
+  const assetsReady =
+    !isLoadingPhotos && photos.length > 0 && loaded + failed >= photos.length
+
   const handleSelect = useCallback(
     (_photo: Photo, index: number, origin: ImageRect) => {
       setLightboxOrigin(origin)
@@ -78,6 +81,7 @@ export default function App() {
           photos={photos}
           onSelect={handleSelect}
           onLoadProgress={handleLoadProgress}
+          assetsReady={assetsReady}
           viewMode={viewMode}
           onTransitionChange={setViewTransitioning}
           onIntroComplete={() => setIntroDone(true)}

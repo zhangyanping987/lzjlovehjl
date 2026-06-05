@@ -17,6 +17,7 @@ interface SceneProps {
   onIntroProgress?: (progress: number) => void
   onIntroComplete?: () => void
   interactive?: boolean
+  assetsReady: boolean
   viewMode: ViewMode
   onTransitionChange: (active: boolean) => void
 }
@@ -28,6 +29,7 @@ function SceneContent({
   onIntroProgress,
   onIntroComplete,
   interactive = true,
+  assetsReady,
   viewMode,
   onTransitionChange,
 }: SceneProps) {
@@ -35,6 +37,7 @@ function SceneContent({
   const [introProgress, setIntroProgress] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
   const lastProgressUpdate = useRef(0)
+  const introActive = assetsReady && !introDone
   const controlsEnabled = interactive && introDone
 
   const handleIntroProgress = useCallback(
@@ -58,11 +61,13 @@ function SceneContent({
   )
 
   return (
-    <IntroContext.Provider value={{ progress: introProgress, active: !introDone }}>
+    <IntroContext.Provider
+      value={{ progress: introProgress, active: introActive, done: introDone }}
+    >
       <ambientLight intensity={0.45} />
       <SceneEffects />
       <IntroAnimation
-        active={!introDone}
+        active={introActive}
         onProgress={handleIntroProgress}
         onComplete={() => {
           setIntroProgress(1)
@@ -75,6 +80,7 @@ function SceneContent({
           photos={photos}
           onSelect={onSelect}
           onLoadProgress={onLoadProgress}
+          preloadAll={!assetsReady}
         />
       </IntroAnimation>
       <CameraViewTransition
