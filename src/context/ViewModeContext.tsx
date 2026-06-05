@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react'
 export type ViewMode = 'outer' | 'inner'
 
 export const VIEW_CONFIG = {
-  /** 与 PhotoSphere 球半径一致，≤ 此距离视为球内 */
+  /** 与相册外轮廓一致，≤ 此距离视为「球内/心内」 */
   sphereRadius: 12,
   /** 手动缩放：球心附近 → 球外最远 */
   zoomMin: 1,

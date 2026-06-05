@@ -3,29 +3,39 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 import type { Photo } from '../data/photos'
 import type { ImageRect } from '../utils/lightboxRect'
+import { fibonacciHeart } from '../utils/heartSurface'
 import { fibonacciSphere } from '../utils/fibonacciSphere'
+import { ALBUM_SHAPE_SCALE, type AlbumShape } from '../types/albumShape'
 import { useIntro } from '../context/IntroContext'
 import { usePerformance } from '../context/PerformanceContext'
 import FacingCenter from './FacingCenter'
 import PhotoNode from './PhotoNode'
 
-const SPHERE_RADIUS = 12
+const SHAPE_SCALE = ALBUM_SHAPE_SCALE
 const BATCH_SIZE = 30
+
+function layoutPhotos(count: number, shape: AlbumShape) {
+  return shape === 'heart'
+    ? fibonacciHeart(count, SHAPE_SCALE)
+    : fibonacciSphere(count, SHAPE_SCALE)
+}
 
 interface PhotoSphereProps {
   photos: Photo[]
+  shape: AlbumShape
   onSelect: (photo: Photo, index: number, origin: ImageRect) => void
   onLoadProgress: (loaded: number, failed: number, total: number) => void
   preloadAll?: boolean
 }
 
 function depthToZIndex(dot: number) {
-  const normalized = (dot + SPHERE_RADIUS) / (SPHERE_RADIUS * 2)
+  const normalized = (dot + SHAPE_SCALE) / (SHAPE_SCALE * 2)
   return Math.round(Math.max(0, Math.min(1, normalized)) * 1000)
 }
 
 export default function PhotoSphere({
   photos,
+  shape,
   onSelect,
   onLoadProgress,
   preloadAll = false,
@@ -42,9 +52,14 @@ export default function PhotoSphere({
   const depthBuffer = useRef<number[]>([])
 
   const positions = useMemo(
-    () => fibonacciSphere(photos.length, SPHERE_RADIUS),
-    [photos.length],
+    () => layoutPhotos(photos.length, shape),
+    [photos.length, shape],
   )
+
+  useEffect(() => {
+    depthBuffer.current = new Array(photos.length).fill(500)
+    setDepthZByIndex(new Array(photos.length).fill(500))
+  }, [photos.length, shape])
 
   useEffect(() => {
     setLoadedCount(0)
@@ -120,7 +135,7 @@ export default function PhotoSphere({
         const photo = photos[index]
 
         return (
-          <FacingCenter key={`${photo.url}-${index}`} position={pos}>
+          <FacingCenter key={`${shape}-${photo.url}-${index}`} position={pos}>
             <PhotoNode
               photo={photo}
               photoIndex={index}

@@ -3,9 +3,11 @@ import { Canvas } from '@react-three/fiber'
 import { IntroContext } from '../context/IntroContext'
 import { PerformanceProvider, usePerformance } from '../context/PerformanceContext'
 import { type ViewMode } from '../context/ViewModeContext'
+import type { AlbumShape } from '../types/albumShape'
 import type { Photo } from '../data/photos'
 import type { ImageRect } from '../utils/lightboxRect'
 import CameraViewTransition from './CameraViewTransition'
+import CameraFaceFront from './CameraFaceFront'
 import IntroAnimation from './IntroAnimation'
 import SceneEffects from './SceneEffects'
 import PhotoSphere from './PhotoSphere'
@@ -19,8 +21,10 @@ interface SceneProps {
   onIntroComplete?: () => void
   interactive?: boolean
   assetsReady: boolean
+  albumShape: AlbumShape
   snapRequest: number
   snapTarget: ViewMode
+  faceFrontRequest: number
   onViewModeChange?: (mode: ViewMode) => void
   onTransitionChange?: (active: boolean) => void
 }
@@ -33,22 +37,37 @@ function SceneContent({
   onIntroComplete,
   interactive = true,
   assetsReady,
+  albumShape,
   snapRequest,
   snapTarget,
+  faceFrontRequest,
   onViewModeChange,
   onTransitionChange,
 }: SceneProps) {
   const [introDone, setIntroDone] = useState(false)
   const [introProgress, setIntroProgress] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
+  const transitionLocks = useRef(0)
   const lastProgressUpdate = useRef(0)
   const introActive = assetsReady && !introDone
   const controlsEnabled = interactive && introDone && !transitioning
 
   const handleTransitionChange = useCallback(
     (active: boolean) => {
-      setTransitioning(active)
-      onTransitionChange?.(active)
+      if (active) {
+        transitionLocks.current += 1
+        if (transitionLocks.current === 1) {
+          setTransitioning(true)
+          onTransitionChange?.(true)
+        }
+        return
+      }
+
+      transitionLocks.current = Math.max(0, transitionLocks.current - 1)
+      if (transitionLocks.current === 0) {
+        setTransitioning(false)
+        onTransitionChange?.(false)
+      }
     },
     [onTransitionChange],
   )
@@ -83,6 +102,7 @@ function SceneContent({
       >
         <PhotoSphere
           photos={photos}
+          shape={albumShape}
           onSelect={onSelect}
           onLoadProgress={onLoadProgress}
           preloadAll={!assetsReady}
@@ -91,6 +111,11 @@ function SceneContent({
       <CameraViewTransition
         snapRequest={snapRequest}
         snapTarget={snapTarget}
+        enabled={introDone}
+        onTransitionChange={handleTransitionChange}
+      />
+      <CameraFaceFront
+        request={faceFrontRequest}
         enabled={introDone}
         onTransitionChange={handleTransitionChange}
       />

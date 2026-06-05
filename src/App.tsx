@@ -7,7 +7,9 @@ import LoadingOverlay from './components/LoadingOverlay'
 import HeartTrail from './components/HeartTrail'
 import StarfieldBackground from './components/StarfieldBackground'
 import ViewModeToggle from './components/ViewModeToggle'
+import ShapeToggle from './components/ShapeToggle'
 import type { ViewMode } from './context/ViewModeContext'
+import type { AlbumShape } from './types/albumShape'
 import type { ImageRect } from './utils/lightboxRect'
 
 export default function App() {
@@ -25,6 +27,17 @@ export default function App() {
   const [snapRequest, setSnapRequest] = useState(0)
   const [snapTarget, setSnapTarget] = useState<ViewMode>('inner')
   const [viewTransitioning, setViewTransitioning] = useState(false)
+  const [albumShape, setAlbumShape] = useState<AlbumShape>('sphere')
+  const [faceFrontRequest, setFaceFrontRequest] = useState(0)
+
+  const toggleAlbumShape = useCallback(() => {
+    setAlbumShape((s) => {
+      if (s === 'sphere') {
+        setFaceFrontRequest((n) => n + 1)
+      }
+      return s === 'sphere' ? 'heart' : 'sphere'
+    })
+  }, [])
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode)
@@ -84,6 +97,8 @@ export default function App() {
           onSelect={handleSelect}
           onLoadProgress={handleLoadProgress}
           assetsReady={assetsReady}
+          albumShape={albumShape}
+          faceFrontRequest={faceFrontRequest}
           snapRequest={snapRequest}
           snapTarget={snapTarget}
           onViewModeChange={handleViewModeChange}
@@ -114,7 +129,12 @@ export default function App() {
       <IntroOverlay visible={introVisible} progress={introProgress} />
 
       {introDone && lightboxIndex === null && (
-        <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-20 flex justify-center">
+        <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-3">
+          <ShapeToggle
+            shape={albumShape}
+            onToggle={toggleAlbumShape}
+            disabled={viewTransitioning}
+          />
           <ViewModeToggle
             viewMode={viewMode}
             onToggle={toggleViewMode}

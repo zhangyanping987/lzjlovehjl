@@ -396,12 +396,6 @@ export default function Lightbox({
           {renderSlide(photos[nextIndex], nextIndex, 'next')}
         </div>
       </div>
-
-      {phase === 'open' && (
-        <p className="pointer-events-none absolute bottom-6 left-0 right-0 text-center text-xs text-zinc-500 sm:text-sm">
-          左右拖动切换 · ESC 关闭
-        </p>
-      )}
     </div>,
     document.body,
   )
