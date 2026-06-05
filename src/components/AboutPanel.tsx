@@ -69,6 +69,24 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
 
           <section className="mb-6">
             <h3 className="mb-3 text-xs font-medium tracking-wider text-teal-300/90">
+              他走过来的光
+            </h3>
+            <p className="mb-3">
+              贺峻霖是时代少年团的一员。舞台上看起来的轻松，背后是从练习生时期一路练过来、等过来、熬过来的年月——那些没有上热搜的日子，同样真实，同样值得被记住。
+            </p>
+            <p className="mb-3">
+              粉丝叫「深海」，不是没有来由：像在海面下陪他潜行，等一束光慢慢靠近。网站进入时要先等、再缓缓下沉，是想把那种「终于见到他」的心情留给你——不抢跑，不敷衍，像深海陪他走过来的那些日子一样，安静但有方向。
+            </p>
+            <p className="mb-3">
+              应援色「春海月明」——春是希望，海是陪伴，月是远处仍亮着的那一点。整站用深海的暗蓝托底，再晕春海月明的青绿与月银，是把粉丝对他的祝愿写进颜色里：暗处有人同行，远处仍有光亮。
+            </p>
+            <p>
+              相册里的照片，有舞台、有练习室、有日常——是他从少年走到现在的许多切面。你在外围绕着他转，或一路穿进深处，都像在翻阅他自己走过的路：不是只有高光，也有练习、等待和那些没被镜头完整记录、却真实发生过的时刻。
+            </p>
+          </section>
+
+          <section className="mb-6">
+            <h3 className="mb-3 text-xs font-medium tracking-wider text-teal-300/90">
               藏在他身上的小事
             </h3>
             <p className="mb-3">
@@ -85,7 +103,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
               </li>
               <li>
                 <strong className="font-normal text-zinc-100">火星</strong>
-                — 偶尔闪过的暖红余烬，是他对华晨宇、对「火星」那份长久而赤诚的追随——喜欢一个人的时候，眼睛是会发光的。
+                — 偶尔闪过的暖红余烬，是他公开说过许多次的欣赏与追随——华晨宇、火星，是少年心里很早就亮起来的另一颗星。
               </li>
               <li>
                 <strong className="font-normal text-zinc-100">美食</strong>
