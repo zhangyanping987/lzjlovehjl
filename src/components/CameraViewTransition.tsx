@@ -4,30 +4,28 @@ import { Vector3 } from 'three'
 import { VIEW_CONFIG, type ViewMode } from '../context/ViewModeContext'
 
 interface CameraViewTransitionProps {
-  viewMode: ViewMode
+  snapRequest: number
+  snapTarget: ViewMode
   enabled: boolean
 }
 
-/** 仅按钮切换视角时瞬间定位，缩放不做过渡 */
+/** 仅底部按钮触发瞬间跳转，手动缩放不经过此组件 */
 export default function CameraViewTransition({
-  viewMode,
+  snapRequest,
+  snapTarget,
   enabled,
 }: CameraViewTransitionProps) {
   const { camera } = useThree()
   const direction = useRef(new Vector3())
-  const prevMode = useRef<ViewMode | null>(null)
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || snapRequest === 0) return
 
-    if (prevMode.current === null) {
-      prevMode.current = viewMode
-      return
-    }
-    if (prevMode.current === viewMode) return
-    prevMode.current = viewMode
+    const targetDist =
+      snapTarget === 'inner'
+        ? VIEW_CONFIG.inner.distance
+        : VIEW_CONFIG.outer.distance
 
-    const targetDist = VIEW_CONFIG[viewMode].distance
     const dist = camera.position.length()
     if (dist > 0.001) {
       direction.current.copy(camera.position).normalize()
@@ -37,7 +35,7 @@ export default function CameraViewTransition({
     camera.position.copy(direction.current).multiplyScalar(targetDist)
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
-  }, [viewMode, enabled, camera])
+  }, [snapRequest, snapTarget, enabled, camera])
 
   return null
 }

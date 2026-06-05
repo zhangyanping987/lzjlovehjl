@@ -3,7 +3,11 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { TrackballControls } from '@react-three/drei'
 import type { TrackballControls as TrackballControlsImpl } from 'three-stdlib'
 import { Vector3 } from 'three'
-import { VIEW_CONFIG, type ViewMode } from '../context/ViewModeContext'
+import {
+  VIEW_CONFIG,
+  viewModeFromDistance,
+  type ViewMode,
+} from '../context/ViewModeContext'
 
 /** 改这里即可生效 — 不要给 TrackballControls 传 rotateSpeed prop（会被 React 覆盖） */
 export const CONTROL_CONFIG = {
@@ -15,20 +19,19 @@ export const CONTROL_CONFIG = {
 
 interface SphereControlsProps {
   enabled: boolean
-  viewMode: ViewMode
+  onViewModeChange?: (mode: ViewMode) => void
 }
 
-export default function SphereControls({ enabled, viewMode }: SphereControlsProps) {
+export default function SphereControls({
+  enabled,
+  onViewModeChange,
+}: SphereControlsProps) {
   const { camera } = useThree()
   const controlsRef = useRef<TrackballControlsImpl>(null)
   const origin = useRef(new Vector3())
-  const viewModeRef = useRef(viewMode)
+  const zoneRef = useRef<ViewMode>('outer')
 
-  const { minDistance, maxDistance } = VIEW_CONFIG[viewMode]
-
-  useEffect(() => {
-    viewModeRef.current = viewMode
-  }, [viewMode])
+  const { zoomMin, zoomMax } = VIEW_CONFIG
 
   useEffect(() => {
     const controls = controlsRef.current
@@ -36,31 +39,37 @@ export default function SphereControls({ enabled, viewMode }: SphereControlsProp
 
     controls.zoomSpeed = CONTROL_CONFIG.zoomSpeed
     controls.dynamicDampingFactor = CONTROL_CONFIG.dynamicDampingFactor
-    controls.minDistance = minDistance
-    controls.maxDistance = maxDistance
-  }, [minDistance, maxDistance])
+    controls.minDistance = zoomMin
+    controls.maxDistance = zoomMax
+  }, [zoomMin, zoomMax])
 
   useFrame(() => {
     const controls = controlsRef.current
     if (!controls || !enabled) return
 
-    const isInner = viewModeRef.current === 'inner'
+    const distance = camera.position.distanceTo(origin.current)
+
+    const zone = viewModeFromDistance(distance)
+    if (zone !== zoneRef.current) {
+      zoneRef.current = zone
+      onViewModeChange?.(zone)
+    }
+
+    const isInner = zone === 'inner'
     let speed = isInner
       ? CONTROL_CONFIG.innerRotateSpeed
       : CONTROL_CONFIG.outerRotateSpeed
-
     if (isInner) {
       speed *= -1
     }
 
     controls.rotateSpeed = speed
-    controls.minDistance = minDistance
-    controls.maxDistance = maxDistance
+    controls.minDistance = zoomMin
+    controls.maxDistance = zoomMax
 
-    const distance = camera.position.distanceTo(origin.current)
-    if (distance > 0.001 && (distance < minDistance || distance > maxDistance)) {
+    if (distance > 0.001 && (distance < zoomMin || distance > zoomMax)) {
       const dir = camera.position.clone().normalize()
-      const clamped = Math.max(minDistance, Math.min(maxDistance, distance))
+      const clamped = Math.max(zoomMin, Math.min(zoomMax, distance))
       camera.position.copy(dir).multiplyScalar(clamped)
       camera.lookAt(0, 0, 0)
     }
@@ -73,8 +82,8 @@ export default function SphereControls({ enabled, viewMode }: SphereControlsProp
       zoomSpeed={CONTROL_CONFIG.zoomSpeed}
       staticMoving={false}
       dynamicDampingFactor={CONTROL_CONFIG.dynamicDampingFactor}
-      minDistance={minDistance}
-      maxDistance={maxDistance}
+      minDistance={zoomMin}
+      maxDistance={zoomMax}
       noPan
     />
   )

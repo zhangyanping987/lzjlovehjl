@@ -19,7 +19,9 @@ interface SceneProps {
   onIntroComplete?: () => void
   interactive?: boolean
   assetsReady: boolean
-  viewMode: ViewMode
+  snapRequest: number
+  snapTarget: ViewMode
+  onViewModeChange?: (mode: ViewMode) => void
 }
 
 function SceneContent({
@@ -30,7 +32,9 @@ function SceneContent({
   onIntroComplete,
   interactive = true,
   assetsReady,
-  viewMode,
+  snapRequest,
+  snapTarget,
+  onViewModeChange,
 }: SceneProps) {
   const [introDone, setIntroDone] = useState(false)
   const [introProgress, setIntroProgress] = useState(0)
@@ -73,17 +77,20 @@ function SceneContent({
           preloadAll={!assetsReady}
         />
       </IntroAnimation>
-      <CameraViewTransition viewMode={viewMode} enabled={introDone} />
-      <SphereControls enabled={controlsEnabled} viewMode={viewMode} />
+      <CameraViewTransition
+        snapRequest={snapRequest}
+        snapTarget={snapTarget}
+        enabled={introDone}
+      />
+      <SphereControls
+        enabled={controlsEnabled}
+        onViewModeChange={onViewModeChange}
+      />
     </IntroContext.Provider>
   )
 }
 
-function SceneCanvas({
-  interactive = true,
-  viewMode,
-  ...props
-}: SceneProps) {
+function SceneCanvas({ interactive = true, ...props }: SceneProps) {
   const { isMobile } = usePerformance()
 
   return (
@@ -103,7 +110,6 @@ function SceneCanvas({
           <SceneContent
             {...props}
             interactive={interactive}
-            viewMode={viewMode}
           />
         </Suspense>
       </Canvas>

@@ -22,10 +22,18 @@ export default function App() {
   const [introVisible, setIntroVisible] = useState(false)
   const [introDone, setIntroDone] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('outer')
+  const [snapRequest, setSnapRequest] = useState(0)
+  const [snapTarget, setSnapTarget] = useState<ViewMode>('inner')
+
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
+    setViewMode(mode)
+  }, [])
 
   const toggleViewMode = useCallback(() => {
-    setViewMode((m) => (m === 'outer' ? 'inner' : 'outer'))
-  }, [])
+    const next = viewMode === 'outer' ? 'inner' : 'outer'
+    setSnapTarget(next)
+    setSnapRequest((n) => n + 1)
+  }, [viewMode])
 
   useEffect(() => {
     loadPhotos()
@@ -81,7 +89,9 @@ export default function App() {
           onSelect={handleSelect}
           onLoadProgress={handleLoadProgress}
           assetsReady={assetsReady}
-          viewMode={viewMode}
+          snapRequest={snapRequest}
+          snapTarget={snapTarget}
+          onViewModeChange={handleViewModeChange}
           onIntroComplete={() => setIntroDone(true)}
           onIntroProgress={(p) => {
             setIntroVisible(true)
@@ -115,7 +125,7 @@ export default function App() {
 
       <footer className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#020810] to-transparent px-4 py-4 text-center">
         <p className="text-xs text-zinc-500 sm:text-sm">
-          拖拽旋转 · 滚轮/双指缩放（当前视角范围内）· 底部按钮切换球内/球外 · 点击图片查看
+          拖拽旋转 · 滚轮/双指缩放可穿入球心 · 底部按钮快速跳转 · 点击图片查看
         </p>
       </footer>
 
