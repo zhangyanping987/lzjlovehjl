@@ -38,7 +38,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
       >
         <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-5 py-4">
           <h2 className="text-base font-medium tracking-wide text-white sm:text-lg">
-            写给深海的一页
+            写给你的一页
           </h2>
           <button
             type="button"
@@ -51,8 +51,11 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
         </header>
 
         <div className="overflow-y-auto px-5 py-4 text-sm leading-[1.85] text-zinc-300 sm:text-[15px]">
-          <p className="mb-5 text-zinc-200">
-            贺峻霖的照片散落在网络的各个角落——舞台、练习室、日常、笑容。这个网站想做的，是把它们轻轻拢进同一片夜里，像把散落的星光收进掌心，再捧到你面前。
+          <p className="mb-3 text-zinc-200">
+            生日快乐。这是一份独属于你的小礼物，我花心思把关于贺峻霖的许多瞬间收进深海倒映的一片星空，再捧到你面前。
+          </p>
+          <p className="mb-5 text-zinc-300">
+            他的照片散落在网络的各个角落：舞台、练习室、日常、笑容。我想做的，是让你打开它时，可以拥有耐心，像收到一本只属于你的记忆册，或是可以慢慢翻阅的故事。
           </p>
 
           <section className="mb-6">
@@ -63,7 +66,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
               粉丝叫深海，应援色叫春海月明。于是整站是深海底色的暗蓝，再晕开青绿与月银——不是炫目的灯牌，而是夜里抬头时，海面上那层安静又温柔的光。气泡缓缓上升，星点明灭，偶尔有流星划过，像陪他在同一片天空下多站了一会儿。
             </p>
             <p>
-              进入网站时，会先等每一张照片都准备好，再慢慢潜入。那一路的靠近与旋转，是想把「去见他的路上」也留给你——不急着打断，只让你从远处一点一点游近那团光。
+              进入网站时，会先等待他的每一个身影都准备好，再慢慢潜入。那一路的靠近与旋转，是想把「去见他的路上」的心情表达出来，就像跳动的心脏，由慢到快，由远到近，可以让你从远处一点一点游近那团光。
             </p>
           </section>
 
@@ -75,7 +78,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
               贺峻霖是时代少年团的一员。舞台上看起来的轻松，背后是从练习生时期一路练过来、等过来、熬过来的年月——那些没有上热搜的日子，同样真实，同样值得被记住。
             </p>
             <p className="mb-3">
-              粉丝叫「深海」，不是没有来由：像在海面下陪他潜行，等一束光慢慢靠近。网站进入时要先等、再缓缓下沉，是想把那种「终于见到他」的心情留给你——不抢跑，不敷衍，像深海陪他走过来的那些日子一样，安静但有方向。
+              粉丝叫「深海」，不是没有来由：像在海面下陪他潜行，等一束光慢慢靠近。网站进入时要先等、再缓缓下沉，是想把那种「终于见到他」的心情留给你——不着急，不敷衍，像深海陪他走过来的那些日子一样，安静但有方向。
             </p>
             <p className="mb-3">
               应援色「春海月明」——春是希望，海是陪伴，月是远处仍亮着的那一点。整站用深海的暗蓝托底，再晕春海月明的青绿与月银，是把粉丝对他的祝愿写进颜色里：暗处有人同行，远处仍有光亮。
@@ -103,7 +106,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
               </li>
               <li>
                 <strong className="font-normal text-zinc-100">火星</strong>
-                — 偶尔闪过的暖红余烬，是他公开说过许多次的欣赏与追随——华晨宇、火星，是少年心里很早就亮起来的另一颗星。
+                — 偶尔闪过的暖红余烬，是他对华晨宇、对「火星」那份长久而赤诚的追随——喜欢一个人的时候，眼睛是会发光的。
               </li>
               <li>
                 <strong className="font-normal text-zinc-100">美食</strong>
@@ -129,7 +132,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
           </section>
 
           <p className="border-t border-white/10 pt-4 text-zinc-400">
-            如果这些细节让你在某一刻觉得柔软，那这一页就达到了它想做的事——不是为了热闹，只是想认真地说：贺峻霖值得被这样温柔地记住。谢谢你来看他。
+            如果这些细节让你在某一刻觉得柔软，那这一页想做的事就完成了。贺峻霖值得被温柔地记住——而你，值得收到这样一份用心准备的礼物。希望你喜欢。
           </p>
         </div>
       </article>
