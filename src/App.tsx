@@ -22,14 +22,9 @@ export default function App() {
   const [introVisible, setIntroVisible] = useState(false)
   const [introDone, setIntroDone] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('outer')
-  const [viewTransitioning, setViewTransitioning] = useState(false)
 
   const toggleViewMode = useCallback(() => {
     setViewMode((m) => (m === 'outer' ? 'inner' : 'outer'))
-  }, [])
-
-  const handleViewModeChange = useCallback((mode: ViewMode) => {
-    setViewMode((current) => (current === mode ? current : mode))
   }, [])
 
   useEffect(() => {
@@ -87,8 +82,6 @@ export default function App() {
           onLoadProgress={handleLoadProgress}
           assetsReady={assetsReady}
           viewMode={viewMode}
-          onTransitionChange={setViewTransitioning}
-          onViewModeChange={handleViewModeChange}
           onIntroComplete={() => setIntroDone(true)}
           onIntroProgress={(p) => {
             setIntroVisible(true)
@@ -116,17 +109,13 @@ export default function App() {
 
       {introDone && lightboxIndex === null && (
         <div className="pointer-events-none absolute bottom-16 left-0 right-0 z-20 flex justify-center sm:bottom-20">
-          <ViewModeToggle
-            viewMode={viewMode}
-            onToggle={toggleViewMode}
-            disabled={viewTransitioning}
-          />
+          <ViewModeToggle viewMode={viewMode} onToggle={toggleViewMode} />
         </div>
       )}
 
       <footer className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#020810] to-transparent px-4 py-4 text-center">
         <p className="text-xs text-zinc-500 sm:text-sm">
-          拖拽旋转 · 滚轮/双指缩放 · 缩放到边界可穿入球内 · 点击图片查看
+          拖拽旋转 · 滚轮/双指缩放（当前视角范围内）· 底部按钮切换球内/球外 · 点击图片查看
         </p>
       </footer>
 

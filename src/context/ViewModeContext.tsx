@@ -5,7 +5,6 @@ export type ViewMode = 'outer' | 'inner'
 export const VIEW_CONFIG = {
   outer: { distance: 30, minDistance: 18, maxDistance: 30 },
   inner: { distance: 9, minDistance: 8, maxDistance: 11.5 },
-  transitionDuration: 0.85,
 } as const
 
 interface ViewModeContextValue {

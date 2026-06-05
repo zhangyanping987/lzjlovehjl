@@ -20,8 +20,6 @@ interface SceneProps {
   interactive?: boolean
   assetsReady: boolean
   viewMode: ViewMode
-  onTransitionChange: (active: boolean) => void
-  onViewModeChange?: (mode: ViewMode) => void
 }
 
 function SceneContent({
@@ -33,12 +31,9 @@ function SceneContent({
   interactive = true,
   assetsReady,
   viewMode,
-  onTransitionChange,
-  onViewModeChange,
 }: SceneProps) {
   const [introDone, setIntroDone] = useState(false)
   const [introProgress, setIntroProgress] = useState(0)
-  const [transitioning, setTransitioning] = useState(false)
   const lastProgressUpdate = useRef(0)
   const introActive = assetsReady && !introDone
   const controlsEnabled = interactive && introDone
@@ -53,14 +48,6 @@ function SceneContent({
       }
     },
     [onIntroProgress],
-  )
-
-  const handleTransitionChange = useCallback(
-    (active: boolean) => {
-      setTransitioning(active)
-      onTransitionChange(active)
-    },
-    [onTransitionChange],
   )
 
   return (
@@ -86,17 +73,8 @@ function SceneContent({
           preloadAll={!assetsReady}
         />
       </IntroAnimation>
-      <CameraViewTransition
-        viewMode={viewMode}
-        enabled={introDone}
-        onTransitionChange={handleTransitionChange}
-      />
-      <SphereControls
-        enabled={controlsEnabled}
-        viewMode={viewMode}
-        transitioning={transitioning}
-        onViewModeChange={onViewModeChange}
-      />
+      <CameraViewTransition viewMode={viewMode} enabled={introDone} />
+      <SphereControls enabled={controlsEnabled} viewMode={viewMode} />
     </IntroContext.Provider>
   )
 }
@@ -104,7 +82,6 @@ function SceneContent({
 function SceneCanvas({
   interactive = true,
   viewMode,
-  onTransitionChange,
   ...props
 }: SceneProps) {
   const { isMobile } = usePerformance()
@@ -127,7 +104,6 @@ function SceneCanvas({
             {...props}
             interactive={interactive}
             viewMode={viewMode}
-            onTransitionChange={onTransitionChange}
           />
         </Suspense>
       </Canvas>
