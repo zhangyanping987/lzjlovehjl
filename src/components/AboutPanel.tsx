@@ -38,7 +38,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
       >
         <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-5 py-4">
           <h2 className="text-base font-medium tracking-wide text-white sm:text-lg">
-            写给你的一页
+            致「深海」的信
           </h2>
           <button
             type="button"
