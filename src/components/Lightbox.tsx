@@ -282,11 +282,6 @@ export default function Lightbox({
             }}
           />
         )}
-        {isCurrent && (
-          <p className="mt-4 text-sm text-zinc-400">
-            {index + 1} / {photos.length} · {p.title}
-          </p>
-        )}
       </div>
     )
   }

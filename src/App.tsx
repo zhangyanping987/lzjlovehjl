@@ -65,14 +65,6 @@ export default function App() {
     <div className="relative h-screen w-screen overflow-hidden bg-[#020810]">
       <StarfieldBackground />
       <HeartTrail enabled={introDone && lightboxIndex === null} />
-      <header className="pointer-events-none absolute left-0 right-0 top-0 z-10 bg-gradient-to-b from-[#020810] to-transparent px-4 py-5 text-center">
-        <h1 className="text-lg font-medium tracking-wide text-white sm:text-xl">
-          贺峻霖 · 3D 相册
-        </h1>
-        <p className="mt-1 text-xs text-zinc-500 sm:text-sm">
-          {photos.length > 0 ? `${photos.length} 张照片` : '立体球体相册'}
-        </p>
-      </header>
 
       {loadError ? (
         <div className="flex h-full items-center justify-center px-6 text-center">
@@ -118,16 +110,10 @@ export default function App() {
       <IntroOverlay visible={introVisible} progress={introProgress} />
 
       {introDone && lightboxIndex === null && (
-        <div className="pointer-events-none absolute bottom-16 left-0 right-0 z-20 flex justify-center sm:bottom-20">
+        <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-20 flex justify-center">
           <ViewModeToggle viewMode={viewMode} onToggle={toggleViewMode} />
         </div>
       )}
-
-      <footer className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#020810] to-transparent px-4 py-4 text-center">
-        <p className="text-xs text-zinc-500 sm:text-sm">
-          拖拽旋转 · 滚轮/双指缩放可穿入球心 · 底部按钮快速跳转 · 点击图片查看
-        </p>
-      </footer>
 
       {lightboxIndex !== null && (
         <Lightbox
