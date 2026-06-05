@@ -8,6 +8,8 @@ import HeartTrail from './components/HeartTrail'
 import StarfieldBackground from './components/StarfieldBackground'
 import ViewModeToggle from './components/ViewModeToggle'
 import ShapeToggle from './components/ShapeToggle'
+import AboutPanel from './components/AboutPanel'
+import AboutButton from './components/AboutButton'
 import type { ViewMode } from './context/ViewModeContext'
 import type { AlbumShape } from './types/albumShape'
 import type { ImageRect } from './utils/lightboxRect'
@@ -29,6 +31,7 @@ export default function App() {
   const [viewTransitioning, setViewTransitioning] = useState(false)
   const [albumShape, setAlbumShape] = useState<AlbumShape>('sphere')
   const [faceFrontRequest, setFaceFrontRequest] = useState(0)
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   const toggleAlbumShape = useCallback(() => {
     setAlbumShape((s) => {
@@ -80,7 +83,7 @@ export default function App() {
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#020810]">
       <StarfieldBackground />
-      <HeartTrail enabled={introDone && lightboxIndex === null} />
+      <HeartTrail enabled={introDone && lightboxIndex === null && !aboutOpen} />
 
       {loadError ? (
         <div className="flex h-full items-center justify-center px-6 text-center">
@@ -129,19 +132,26 @@ export default function App() {
       <IntroOverlay visible={introVisible} progress={introProgress} />
 
       {introDone && lightboxIndex === null && (
-        <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-3">
-          <ShapeToggle
-            shape={albumShape}
-            onToggle={toggleAlbumShape}
-            disabled={viewTransitioning}
-          />
-          <ViewModeToggle
-            viewMode={viewMode}
-            onToggle={toggleViewMode}
-            disabled={viewTransitioning}
-          />
-        </div>
+        <>
+          <div className="pointer-events-none absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
+            <AboutButton onClick={() => setAboutOpen(true)} />
+          </div>
+          <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-3">
+            <ShapeToggle
+              shape={albumShape}
+              onToggle={toggleAlbumShape}
+              disabled={viewTransitioning}
+            />
+            <ViewModeToggle
+              viewMode={viewMode}
+              onToggle={toggleViewMode}
+              disabled={viewTransitioning}
+            />
+          </div>
+        </>
       )}
+
+      <AboutPanel open={aboutOpen} onClose={() => setAboutOpen(false)} />
 
       {lightboxIndex !== null && (
         <Lightbox
