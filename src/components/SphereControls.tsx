@@ -19,11 +19,13 @@ export const CONTROL_CONFIG = {
 
 interface SphereControlsProps {
   enabled: boolean
+  suspendViewSync?: boolean
   onViewModeChange?: (mode: ViewMode) => void
 }
 
 export default function SphereControls({
   enabled,
+  suspendViewSync = false,
   onViewModeChange,
 }: SphereControlsProps) {
   const { camera } = useThree()
@@ -50,9 +52,11 @@ export default function SphereControls({
     const distance = camera.position.distanceTo(origin.current)
 
     const zone = viewModeFromDistance(distance)
-    if (zone !== zoneRef.current) {
+    if (!suspendViewSync && zone !== zoneRef.current) {
       zoneRef.current = zone
       onViewModeChange?.(zone)
+    } else if (suspendViewSync) {
+      zoneRef.current = zone
     }
 
     const isInner = zone === 'inner'

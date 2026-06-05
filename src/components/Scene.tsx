@@ -22,6 +22,7 @@ interface SceneProps {
   snapRequest: number
   snapTarget: ViewMode
   onViewModeChange?: (mode: ViewMode) => void
+  onTransitionChange?: (active: boolean) => void
 }
 
 function SceneContent({
@@ -35,12 +36,22 @@ function SceneContent({
   snapRequest,
   snapTarget,
   onViewModeChange,
+  onTransitionChange,
 }: SceneProps) {
   const [introDone, setIntroDone] = useState(false)
   const [introProgress, setIntroProgress] = useState(0)
+  const [transitioning, setTransitioning] = useState(false)
   const lastProgressUpdate = useRef(0)
   const introActive = assetsReady && !introDone
-  const controlsEnabled = interactive && introDone
+  const controlsEnabled = interactive && introDone && !transitioning
+
+  const handleTransitionChange = useCallback(
+    (active: boolean) => {
+      setTransitioning(active)
+      onTransitionChange?.(active)
+    },
+    [onTransitionChange],
+  )
 
   const handleIntroProgress = useCallback(
     (progress: number) => {
@@ -81,9 +92,11 @@ function SceneContent({
         snapRequest={snapRequest}
         snapTarget={snapTarget}
         enabled={introDone}
+        onTransitionChange={handleTransitionChange}
       />
       <SphereControls
         enabled={controlsEnabled}
+        suspendViewSync={transitioning}
         onViewModeChange={onViewModeChange}
       />
     </IntroContext.Provider>

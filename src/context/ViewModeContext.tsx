@@ -8,6 +8,8 @@ export const VIEW_CONFIG = {
   /** 手动缩放：球心附近 → 球外最远 */
   zoomMin: 1,
   zoomMax: 30,
+  /** 按钮切换视角过渡时长（秒） */
+  transitionDuration: 0.85,
   /** 按钮快速跳转距离 */
   outer: { distance: 30 },
   inner: { distance: 1 },

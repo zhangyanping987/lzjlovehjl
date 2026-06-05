@@ -24,16 +24,19 @@ export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('outer')
   const [snapRequest, setSnapRequest] = useState(0)
   const [snapTarget, setSnapTarget] = useState<ViewMode>('inner')
+  const [viewTransitioning, setViewTransitioning] = useState(false)
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode)
   }, [])
 
   const toggleViewMode = useCallback(() => {
+    if (viewTransitioning) return
     const next = viewMode === 'outer' ? 'inner' : 'outer'
+    setViewMode(next)
     setSnapTarget(next)
     setSnapRequest((n) => n + 1)
-  }, [viewMode])
+  }, [viewMode, viewTransitioning])
 
   useEffect(() => {
     loadPhotos()
@@ -84,6 +87,7 @@ export default function App() {
           snapRequest={snapRequest}
           snapTarget={snapTarget}
           onViewModeChange={handleViewModeChange}
+          onTransitionChange={setViewTransitioning}
           onIntroComplete={() => setIntroDone(true)}
           onIntroProgress={(p) => {
             setIntroVisible(true)
@@ -111,7 +115,11 @@ export default function App() {
 
       {introDone && lightboxIndex === null && (
         <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-20 flex justify-center">
-          <ViewModeToggle viewMode={viewMode} onToggle={toggleViewMode} />
+          <ViewModeToggle
+            viewMode={viewMode}
+            onToggle={toggleViewMode}
+            disabled={viewTransitioning}
+          />
         </div>
       )}
 
