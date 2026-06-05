@@ -10,6 +10,7 @@ import {
   PointsMaterial,
 } from 'three'
 import { useIntro } from '../context/IntroContext'
+import { usePerformance } from '../context/PerformanceContext'
 import { HJL_THEME } from '../theme/hjlTheme'
 
 /** 深海漂浮星尘 */
@@ -136,7 +137,7 @@ function PingPongBall({
 }
 
 /** 书法墨韵 — 缓慢飘动的深色粒子 */
-function InkWisps({ count = 120 }) {
+function InkWisps({ count = 120 }: { count?: number }) {
   const ref = useRef<Points>(null)
 
   const geometry = useMemo(() => {
@@ -213,7 +214,9 @@ function MoonOrbitMotes({ active }: { active: boolean }) {
 
 export default function SceneEffects() {
   const { progress, active } = useIntro()
+  const { isMobile } = usePerformance()
   const introBoost = active ? Math.max(0, 1 - progress * 1.2) : 0
+  const paintColors = isMobile ? HJL_THEME.paint.slice(0, 3) : HJL_THEME.paint
 
   return (
     <>
@@ -221,7 +224,7 @@ export default function SceneEffects() {
       <Stars
         radius={90}
         depth={55}
-        count={2200}
+        count={isMobile ? 900 : 2200}
         factor={4}
         saturation={0.15}
         fade
@@ -230,87 +233,97 @@ export default function SceneEffects() {
       <Stars
         radius={45}
         depth={25}
-        count={700}
+        count={isMobile ? 280 : 700}
         factor={2.5}
         saturation={0.25}
         fade
         speed={0.12}
       />
 
-      <DeepSeaDust count={380} spread={72} color={HJL_THEME.springSeaLight} />
-      <DeepSeaDust count={160} spread={50} color={HJL_THEME.moonSilver} />
-      <DeepSeaBubbles count={55} />
-      <InkWisps />
-      <MoonOrbitMotes active={active} />
+      <DeepSeaDust count={isMobile ? 120 : 380} spread={72} color={HJL_THEME.springSeaLight} />
+      <DeepSeaDust count={isMobile ? 50 : 160} spread={50} color={HJL_THEME.moonSilver} />
+      {!isMobile && <DeepSeaBubbles count={55} />}
+      <InkWisps count={isMobile ? 40 : 120} />
+      <MoonOrbitMotes active={active && !isMobile} />
 
       {/* 乒乓球 orbit */}
       <PingPongBall orbitRadius={11} speed={0.55} phase={0} color={HJL_THEME.pingPong} yOffset={-2} />
       <PingPongBall orbitRadius={13} speed={0.45} phase={1.2} color={HJL_THEME.pingPongHighlight} yOffset={1.5} />
-      <PingPongBall orbitRadius={15} speed={0.38} phase={2.4} color={HJL_THEME.pingPong} yOffset={-0.5} />
-      <PingPongBall orbitRadius={10} speed={0.62} phase={3.8} color={HJL_THEME.pingPongHighlight} yOffset={2} />
-      <PingPongBall orbitRadius={16} speed={0.32} phase={5} color={HJL_THEME.pingPong} yOffset={0} />
+      {!isMobile && (
+        <>
+          <PingPongBall orbitRadius={15} speed={0.38} phase={2.4} color={HJL_THEME.pingPong} yOffset={-0.5} />
+          <PingPongBall orbitRadius={10} speed={0.62} phase={3.8} color={HJL_THEME.pingPongHighlight} yOffset={2} />
+          <PingPongBall orbitRadius={16} speed={0.32} phase={5} color={HJL_THEME.pingPong} yOffset={0} />
+        </>
+      )}
 
       {/* 绘画 · 调色盘微光 */}
-      {HJL_THEME.paint.map((color, i) => (
+      {paintColors.map((color, i) => (
         <Sparkles
           key={color}
-          count={25}
+          count={isMobile ? 12 : 25}
           scale={18 + i * 2}
           size={2 + (i % 2)}
           speed={0.15 + i * 0.03}
-          opacity={0.22 + introBoost * 0.35}
+          opacity={0.22 + introBoost * (isMobile ? 0.15 : 0.35)}
           color={color}
         />
       ))}
 
       {/* 追星 · 火星余烬 */}
       <Sparkles
-        count={45}
+        count={isMobile ? 18 : 45}
         scale={24}
         size={2.5}
         speed={0.28}
-        opacity={0.25 + introBoost * 0.4}
+        opacity={0.25 + introBoost * (isMobile ? 0.15 : 0.4)}
         color={HJL_THEME.mars}
       />
-      <Sparkles
-        count={30}
-        scale={20}
-        size={3}
-        speed={0.18}
-        opacity={0.15 + introBoost * 0.3}
-        color={HJL_THEME.marsGlow}
-      />
+      {!isMobile && (
+        <Sparkles
+          count={30}
+          scale={20}
+          size={3}
+          speed={0.18}
+          opacity={0.15 + introBoost * 0.3}
+          color={HJL_THEME.marsGlow}
+        />
+      )}
 
       {/* 美食 · 暖色光点 */}
-      <Sparkles
-        count={35}
-        scale={16}
-        size={2}
-        speed={0.14}
-        opacity={0.18 + introBoost * 0.25}
-        color={HJL_THEME.foodWarm}
-      />
+      {!isMobile && (
+        <Sparkles
+          count={35}
+          scale={16}
+          size={2}
+          speed={0.14}
+          opacity={0.18 + introBoost * 0.25}
+          color={HJL_THEME.foodWarm}
+        />
+      )}
 
       {/* 春海月明 · 主光晕 */}
       <Sparkles
-        count={70}
+        count={isMobile ? 28 : 70}
         scale={22}
         size={2.5}
         speed={0.18}
-        opacity={0.32 + introBoost * 0.45}
+        opacity={0.32 + introBoost * (isMobile ? 0.2 : 0.45)}
         color={HJL_THEME.springSeaLight}
       />
-      <Sparkles
-        count={45}
-        scale={28}
-        size={3.5}
-        speed={0.1}
-        opacity={0.2 + introBoost * 0.35}
-        color={HJL_THEME.moonlight}
-      />
+      {!isMobile && (
+        <Sparkles
+          count={45}
+          scale={28}
+          size={3.5}
+          speed={0.1}
+          opacity={0.2 + introBoost * 0.35}
+          color={HJL_THEME.moonlight}
+        />
+      )}
 
-      {/* 进入动画 · 深海涌现 */}
-      {active && (
+      {/* 进入动画 · 深海涌现（移动端跳过额外粒子层） */}
+      {active && !isMobile && (
         <>
           <Sparkles
             count={120}

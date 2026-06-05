@@ -4,6 +4,8 @@ import { Vector3 } from 'three'
 import type { Photo } from '../data/photos'
 import type { ImageRect } from '../utils/lightboxRect'
 import { fibonacciSphere } from '../utils/fibonacciSphere'
+import { useIntro } from '../context/IntroContext'
+import { usePerformance } from '../context/PerformanceContext'
 import FacingCenter from './FacingCenter'
 import PhotoNode from './PhotoNode'
 
@@ -29,6 +31,9 @@ export default function PhotoSphere({
   preloadAll = false,
 }: PhotoSphereProps) {
   const { camera } = useThree()
+  const { active: introActive } = useIntro()
+  const { isMobile } = usePerformance()
+  const depthTick = useRef(0)
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE)
   const [loadedCount, setLoadedCount] = useState(0)
   const [failedCount, setFailedCount] = useState(0)
@@ -76,6 +81,10 @@ export default function PhotoSphere({
   }, [loadedCount, failedCount, photos.length, onLoadProgress])
 
   useFrame(() => {
+    depthTick.current += 1
+    const depthInterval = isMobile ? (introActive ? 6 : 3) : 1
+    if (depthTick.current % depthInterval !== 0) return
+
     cameraDir.copy(camera.position).normalize()
 
     let changed = false

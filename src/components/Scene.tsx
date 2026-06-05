@@ -1,6 +1,7 @@
 import { Suspense, useCallback, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { IntroContext } from '../context/IntroContext'
+import { PerformanceProvider, usePerformance } from '../context/PerformanceContext'
 import { type ViewMode } from '../context/ViewModeContext'
 import type { Photo } from '../data/photos'
 import type { ImageRect } from '../utils/lightboxRect'
@@ -97,12 +98,14 @@ function SceneContent({
   )
 }
 
-export default function Scene({
+function SceneCanvas({
   interactive = true,
   viewMode,
   onTransitionChange,
   ...props
 }: SceneProps) {
+  const { isMobile } = usePerformance()
+
   return (
     <div
       className="absolute inset-0 z-[1] transition-opacity duration-200"
@@ -113,8 +116,8 @@ export default function Scene({
     >
       <Canvas
         camera={{ position: [0, 0, 42], fov: 60 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
+        dpr={isMobile ? 1 : [1, 2]}
+        gl={{ antialias: !isMobile, alpha: true, powerPreference: isMobile ? 'low-power' : 'high-performance' }}
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>
@@ -127,5 +130,13 @@ export default function Scene({
         </Suspense>
       </Canvas>
     </div>
+  )
+}
+
+export default function Scene(props: SceneProps) {
+  return (
+    <PerformanceProvider>
+      <SceneCanvas {...props} />
+    </PerformanceProvider>
   )
 }

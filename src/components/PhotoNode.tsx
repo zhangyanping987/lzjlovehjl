@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { Html } from '@react-three/drei'
 import { useIntro } from '../context/IntroContext'
+import { usePerformance } from '../context/PerformanceContext'
 import type { Photo } from '../data/photos'
 import type { ImageRect } from '../utils/lightboxRect'
 import { rectFromDOM } from '../utils/lightboxRect'
@@ -28,6 +29,7 @@ export default function PhotoNode({
 }: PhotoNodeProps) {
 
   const { active: introActive, progress, done: introDone } = useIntro()
+  const { isMobile } = usePerformance()
   const [hovered, setHovered] = useState(false)
   const [failed, setFailed] = useState(false)
   const [loaded, setLoaded] = useState(false)
@@ -94,7 +96,7 @@ export default function PhotoNode({
         center
         transform
         sprite
-        occlude="blending"
+        occlude={isMobile ? false : 'blending'}
         distanceFactor={10}
         style={{ pointerEvents: 'auto' }}
         zIndexRange={[depthZ, depthZ]}
@@ -136,11 +138,11 @@ export default function PhotoNode({
                 height: size,
                 opacity: displayOpacity,
                 filter:
-                  introActive && reveal < 1
+                  !isMobile && introActive && reveal < 1
                     ? `brightness(${1 + (1 - reveal) * 0.9}) saturate(${0.7 + reveal * 0.3})`
                     : undefined,
                 boxShadow:
-                  introActive && reveal > 0 && reveal < 1
+                  !isMobile && introActive && reveal > 0 && reveal < 1
                     ? `0 0 ${12 + reveal * 20}px rgba(192,132,252,${0.35 * reveal})`
                     : undefined,
                 transition: introActive ? 'opacity 0.15s, filter 0.15s' : 'opacity 0.3s',
