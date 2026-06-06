@@ -3,6 +3,7 @@ interface LoadingOverlayProps {
   failed: number
   total: number
   isLoadingPhotos: boolean
+  visible?: boolean
 }
 
 export default function LoadingOverlay({
@@ -10,20 +11,26 @@ export default function LoadingOverlay({
   failed,
   total,
   isLoadingPhotos,
+  visible = true,
 }: LoadingOverlayProps) {
   const done = loaded + failed
   const allReady = !isLoadingPhotos && total > 0 && done >= total
 
-  if (allReady) return null
+  if (!visible || allReady) return null
 
   const percent = total > 0 ? Math.round((done / total) * 100) : 0
+  const waitingForIntro = !isLoadingPhotos && total > 0
 
   return (
     <div className="pointer-events-auto absolute inset-0 z-20 flex items-center justify-center bg-[#020810]/90 backdrop-blur-sm">
       <div className="w-[min(90vw,320px)] text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
         <p className="text-sm text-zinc-300">
-          {isLoadingPhotos ? '加载相册数据...' : '图片加载中，完成后开始动画'}
+          {isLoadingPhotos
+            ? '加载相册数据...'
+            : waitingForIntro
+              ? '图片加载中，即将开始动画...'
+              : '图片加载中...'}
         </p>
         {!isLoadingPhotos && total > 0 && (
           <>

@@ -14,6 +14,24 @@ import type { ViewMode } from './context/ViewModeContext'
 import type { AlbumShape } from './types/albumShape'
 import type { ImageRect } from './utils/lightboxRect'
 
+const LETTER_SEEN_KEY = 'lzjlovehjl-letter-seen'
+
+function readLetterSeen() {
+  try {
+    return sessionStorage.getItem(LETTER_SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function markLetterSeen() {
+  try {
+    sessionStorage.setItem(LETTER_SEEN_KEY, '1')
+  } catch {
+    /* ignore */
+  }
+}
+
 export default function App() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(true)
@@ -31,7 +49,8 @@ export default function App() {
   const [viewTransitioning, setViewTransitioning] = useState(false)
   const [albumShape, setAlbumShape] = useState<AlbumShape>('sphere')
   const [faceFrontRequest, setFaceFrontRequest] = useState(0)
-  const [aboutOpen, setAboutOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(() => !readLetterSeen())
+  const [letterDismissed, setLetterDismissed] = useState(() => readLetterSeen())
 
   const toggleAlbumShape = useCallback(() => {
     setAlbumShape((s) => {
@@ -69,6 +88,14 @@ export default function App() {
     [],
   )
 
+  const handleAboutClose = useCallback(() => {
+    setAboutOpen(false)
+    if (!letterDismissed) {
+      markLetterSeen()
+      setLetterDismissed(true)
+    }
+  }, [letterDismissed])
+
   const assetsReady =
     !isLoadingPhotos && photos.length > 0 && loaded + failed >= photos.length
 
@@ -100,6 +127,7 @@ export default function App() {
           onSelect={handleSelect}
           onLoadProgress={handleLoadProgress}
           assetsReady={assetsReady}
+          introEnabled={letterDismissed}
           albumShape={albumShape}
           faceFrontRequest={faceFrontRequest}
           snapRequest={snapRequest}
@@ -127,6 +155,7 @@ export default function App() {
         failed={failed}
         total={photos.length}
         isLoadingPhotos={isLoadingPhotos}
+        visible={letterDismissed}
       />
 
       <IntroOverlay visible={introVisible} progress={introProgress} />
@@ -151,7 +180,7 @@ export default function App() {
         </>
       )}
 
-      <AboutPanel open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <AboutPanel open={aboutOpen} onClose={handleAboutClose} />
 
       {lightboxIndex !== null && (
         <Lightbox

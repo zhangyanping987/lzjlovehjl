@@ -21,6 +21,7 @@ interface SceneProps {
   onIntroComplete?: () => void
   interactive?: boolean
   assetsReady: boolean
+  introEnabled?: boolean
   albumShape: AlbumShape
   snapRequest: number
   snapTarget: ViewMode
@@ -37,6 +38,7 @@ function SceneContent({
   onIntroComplete,
   interactive = true,
   assetsReady,
+  introEnabled = true,
   albumShape,
   snapRequest,
   snapTarget,
@@ -49,7 +51,7 @@ function SceneContent({
   const [transitioning, setTransitioning] = useState(false)
   const transitionLocks = useRef(0)
   const lastProgressUpdate = useRef(0)
-  const introActive = assetsReady && !introDone
+  const introActive = assetsReady && introEnabled && !introDone
   const controlsEnabled = interactive && introDone && !transitioning
 
   const handleTransitionChange = useCallback(
