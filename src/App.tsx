@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 import { loadPhotos, type Photo } from './data/photos'
-import { usePhotoPreload } from './hooks/usePhotoPreload'
 import { getIntroMinReady } from './constants/loading'
+import { useFullPhotoPreload } from './hooks/useFullPhotoPreload'
 import { usePerformance } from './context/PerformanceContext'
 import IntroOverlay from './components/IntroOverlay'
 import Lightbox from './components/Lightbox'
@@ -43,7 +43,6 @@ export default function App() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(0)
   const [failed, setFailed] = useState(0)
-  const [preloaded, setPreloaded] = useState({ loaded: 0, failed: 0 })
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxOrigin, setLightboxOrigin] = useState<ImageRect | null>(null)
   const [introProgress, setIntroProgress] = useState(0)
@@ -85,14 +84,9 @@ export default function App() {
         setPhotos(data)
         setLoaded(0)
         setFailed(0)
-        setPreloaded({ loaded: 0, failed: 0 })
       })
       .catch((err) => setLoadError(err instanceof Error ? err.message : '加载失败'))
       .finally(() => setIsLoadingPhotos(false))
-  }, [])
-
-  const handlePreloadProgress = useCallback((l: number, f: number, _total: number) => {
-    setPreloaded({ loaded: l, failed: f })
   }, [])
 
   const handleSceneLoadProgress = useCallback(
@@ -103,12 +97,6 @@ export default function App() {
     [],
   )
 
-  usePhotoPreload({
-    photos,
-    enabled: isMobile && photos.length > 0 && !letterDismissed,
-    onProgress: handlePreloadProgress,
-  })
-
   const handleAboutClose = useCallback(() => {
     setAboutOpen(false)
     if (!letterDismissed) {
@@ -118,17 +106,20 @@ export default function App() {
   }, [letterDismissed])
 
   const introMinReady = getIntroMinReady(photos.length, isMobile)
-  const readyCount = Math.max(
-    preloaded.loaded + preloaded.failed,
-    loaded + failed,
-  )
+  const readyCount = loaded + failed
 
   const assetsReady =
     !isLoadingPhotos && photos.length > 0 && readyCount >= introMinReady
 
-  const warmupScene = photos.length > 0 && !isMobile && !letterDismissed
-  const mountScene = photos.length > 0 && (letterDismissed || warmupScene)
+  /** 读信期间后台挂载 3D（手机/桌面），分批加载缩略图 */
+  const warmupScene = photos.length > 0 && !letterDismissed
+  const mountScene = photos.length > 0
   const sceneVisible = letterDismissed
+
+  useFullPhotoPreload({
+    photos,
+    enabled: letterDismissed && assetsReady && !introDone,
+  })
 
   const handleSelect = useCallback(
     (_photo: Photo, index: number, origin: ImageRect) => {
@@ -196,11 +187,11 @@ export default function App() {
 
       <LoadingOverlay
         loaded={readyCount}
-        failed={Math.max(failed, preloaded.failed)}
+        failed={failed}
         total={photos.length}
         isLoadingPhotos={isLoadingPhotos}
         visible={letterDismissed && !assetsReady}
-        hint={`${Math.min(readyCount, introMinReady)}/${introMinReady} 张就绪即可进入`}
+        hint={`${Math.min(readyCount, introMinReady)}/${introMinReady} 张缩略图就绪即可进入`}
       />
 
       <IntroOverlay visible={introVisible} progress={introProgress} />

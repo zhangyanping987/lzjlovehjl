@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import type { Photo } from '../data/photos'
+import { getPhotoFullSrc } from '../utils/photoUrls'
 import {
   computeExpandedRect,
   easeInOutCubic,
@@ -271,7 +272,7 @@ export default function Lightbox({
           </div>
         ) : (
           <img
-            src={p.url}
+            src={getPhotoFullSrc(p)}
             alt={p.title}
             referrerPolicy="no-referrer"
             draggable={false}
@@ -356,7 +357,7 @@ export default function Lightbox({
             </div>
           ) : (
             <img
-              src={photo.url}
+              src={getPhotoFullSrc(photo)}
               alt={photo.title}
               referrerPolicy="no-referrer"
               draggable={false}

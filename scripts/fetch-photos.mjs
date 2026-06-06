@@ -103,6 +103,13 @@ function pickBestUrl(item) {
   return candidates[0] || null
 }
 
+function pickUrls(item) {
+  const url = pickBestUrl(item)
+  if (!url) return null
+  const thumbUrl = isValidImageUrl(item.thumbURL) ? item.thumbURL : null
+  return { url, thumbUrl }
+}
+
 function parseBaiduJson(text) {
   const cleaned = text
     .replace(/[\x00-\x1f]/g, (ch) => (ch === '\n' || ch === '\r' || ch === '\t' ? ch : ''))
@@ -156,14 +163,14 @@ async function fetchWithBaidu(keyword, maxResults) {
     if (items.length === 0) break
 
     for (const item of items) {
-      const url = pickBestUrl(item)
-      if (!url) continue
+      const picked = pickUrls(item)
+      if (!picked) continue
 
       const w = Number(item.width) || 0
       const h = Number(item.height) || 0
       if ((w > 0 && w < 150) || (h > 0 && h < 150)) continue
 
-      urls.push(url)
+      urls.push(picked)
       if (urls.length >= maxResults) break
     }
 
@@ -225,11 +232,13 @@ async function main() {
     for (const keyword of opts.keywords) {
       if (photos.length >= opts.count) break
       const urls = await searchImagesForKeyword(keyword, perKeyword)
-      for (const url of urls) {
+      for (const entry of urls) {
         if (photos.length >= opts.count) break
-        if (!urlSet.has(url)) {
-          urlSet.add(url)
-          photos.push({ url, title: opts.title })
+        if (!urlSet.has(entry.url)) {
+          urlSet.add(entry.url)
+          const photo = { url: entry.url, title: opts.title }
+          if (entry.thumbUrl) photo.thumbUrl = entry.thumbUrl
+          photos.push(photo)
         }
       }
       await new Promise((r) => setTimeout(r, 1000))

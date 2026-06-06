@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { Photo } from '../data/photos'
+import { getPhotoThumbSrc } from '../utils/photoUrls'
 import { PRELOAD_CONCURRENCY } from '../constants/loading'
 
 const LOAD_TIMEOUT_MS = 15000
@@ -52,7 +53,7 @@ export function usePhotoPreload({
         cursor += 1
         if (index >= total) return
 
-        const result = await loadImage(photos[index].url)
+        const result = await loadImage(getPhotoThumbSrc(photos[index]))
         if (cancelled) return
 
         if (result === 'ok') loaded += 1

@@ -1,6 +1,8 @@
 export interface Photo {
   url: string
   title: string
+  /** 可选：搜图脚本写入的更小预览图 */
+  thumbUrl?: string
 }
 
 export async function loadPhotos(): Promise<Photo[]> {

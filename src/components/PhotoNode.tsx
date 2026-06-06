@@ -3,6 +3,7 @@ import { Html } from '@react-three/drei'
 import { useIntro } from '../context/IntroContext'
 import { usePerformance } from '../context/PerformanceContext'
 import type { Photo } from '../data/photos'
+import { getPhotoThumbSrc } from '../utils/photoUrls'
 import type { ImageRect } from '../utils/lightboxRect'
 import { rectFromDOM } from '../utils/lightboxRect'
 
@@ -52,7 +53,7 @@ export default function PhotoNode({
     settled.current = false
     setLoaded(false)
     setFailed(false)
-  }, [photo.url])
+  }, [photo.url, photo.thumbUrl])
 
   useEffect(() => {
     if (loaded || failed) return
@@ -139,7 +140,7 @@ export default function PhotoNode({
             </div>
           ) : (
             <img
-              src={photo.url}
+              src={getPhotoThumbSrc(photo)}
               alt={photo.title}
               loading="eager"
               referrerPolicy="no-referrer"

@@ -13,6 +13,7 @@ import PhotoNode from './PhotoNode'
 
 const SHAPE_SCALE = ALBUM_SHAPE_SCALE
 const BATCH_SIZE = 30
+const WARMUP_BATCH_SIZE = 12
 
 function layoutPhotos(count: number, shape: AlbumShape) {
   return shape === 'heart'
@@ -26,6 +27,7 @@ interface PhotoSphereProps {
   onSelect: (photo: Photo, index: number, origin: ImageRect) => void
   onLoadProgress: (loaded: number, failed: number, total: number) => void
   preloadAll?: boolean
+  warmup?: boolean
 }
 
 function depthToZIndex(dot: number) {
@@ -39,12 +41,14 @@ export default function PhotoSphere({
   onSelect,
   onLoadProgress,
   preloadAll = false,
+  warmup = false,
 }: PhotoSphereProps) {
+  const batchSize = warmup ? WARMUP_BATCH_SIZE : BATCH_SIZE
   const { camera } = useThree()
   const { active: introActive } = useIntro()
   const { isMobile } = usePerformance()
   const depthTick = useRef(0)
-  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE)
+  const [visibleCount, setVisibleCount] = useState(batchSize)
   const [loadedCount, setLoadedCount] = useState(0)
   const [failedCount, setFailedCount] = useState(0)
   const [depthZByIndex, setDepthZByIndex] = useState<number[]>([])
@@ -66,8 +70,8 @@ export default function PhotoSphere({
     setFailedCount(0)
     depthBuffer.current = new Array(photos.length).fill(500)
     setDepthZByIndex(new Array(photos.length).fill(500))
-    setVisibleCount(Math.min(BATCH_SIZE, photos.length))
-  }, [photos])
+    setVisibleCount(Math.min(batchSize, photos.length))
+  }, [photos, batchSize])
 
   useEffect(() => {
     if (preloadAll) {
@@ -79,17 +83,19 @@ export default function PhotoSphere({
     if (preloadAll || visibleCount >= photos.length) return
 
     const scheduleNext = () => {
-      setVisibleCount((c) => Math.min(c + BATCH_SIZE, photos.length))
+      setVisibleCount((c) => Math.min(c + batchSize, photos.length))
     }
 
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(scheduleNext, { timeout: 500 })
+      const id = window.requestIdleCallback(scheduleNext, {
+        timeout: warmup ? 200 : 500,
+      })
       return () => window.cancelIdleCallback(id)
     }
 
-    const id = globalThis.setTimeout(scheduleNext, 100)
+    const id = globalThis.setTimeout(scheduleNext, warmup ? 60 : 100)
     return () => globalThis.clearTimeout(id)
-  }, [visibleCount, photos.length, preloadAll])
+  }, [visibleCount, photos.length, preloadAll, batchSize, warmup])
 
   useEffect(() => {
     onLoadProgress(loadedCount, failedCount, photos.length)

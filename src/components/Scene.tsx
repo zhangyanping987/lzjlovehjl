@@ -111,7 +111,8 @@ function SceneContent({
           shape={albumShape}
           onSelect={onSelect}
           onLoadProgress={onLoadProgress}
-          preloadAll={!assetsReady}
+          preloadAll={!assetsReady && !warmup}
+          warmup={warmup}
         />
       </IntroAnimation>
       <CameraViewTransition
