@@ -101,6 +101,18 @@ body.lightbox-open {
   animation: sea-wave-drift 12s ease-in-out infinite;
 }
 
+.letter-quote {
+  font-family: 'Ma Shan Zheng', KaiTi, STKaiti, serif;
+  letter-spacing: 0.06em;
+  filter: drop-shadow(0 0 18px rgba(94, 234, 212, 0.22));
+}
+
+.letter-title {
+  font-family: 'Ma Shan Zheng', KaiTi, STKaiti, serif;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(0 0 10px rgba(94, 234, 212, 0.14));
+}
+
 @keyframes heart-trail-rise {
   0% {
     opacity: 0;
