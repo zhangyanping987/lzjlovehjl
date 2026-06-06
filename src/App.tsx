@@ -188,10 +188,9 @@ export default function App() {
       <LoadingOverlay
         loaded={readyCount}
         failed={failed}
-        total={photos.length}
+        target={introMinReady}
         isLoadingPhotos={isLoadingPhotos}
         visible={letterDismissed && !assetsReady}
-        hint={`${Math.min(readyCount, introMinReady)}/${introMinReady} 张缩略图就绪即可进入`}
       />
 
       <IntroOverlay visible={introVisible} progress={introProgress} />
