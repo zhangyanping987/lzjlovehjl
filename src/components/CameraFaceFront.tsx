@@ -1,7 +1,8 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
-import { VIEW_CONFIG } from '../context/ViewModeContext'
+import { VIEW_CONFIG, getZoomMax } from '../context/ViewModeContext'
+import { usePerformance } from '../context/PerformanceContext'
 import type { SphereControlsHandle } from './SphereControls'
 
 function easeInOutCubic(t: number) {
@@ -26,6 +27,8 @@ export default function CameraFaceFront({
   onTransitionChange,
 }: CameraFaceFrontProps) {
   const { camera } = useThree()
+  const { isMobile } = usePerformance()
+  const zoomMax = getZoomMax(isMobile)
   const from = useRef(new Vector3())
   const to = useRef(new Vector3())
   const targetDistance = useRef<number>(VIEW_CONFIG.outer.distance)
@@ -46,7 +49,7 @@ export default function CameraFaceFront({
 
     targetDistance.current = Math.max(
       VIEW_CONFIG.zoomMin,
-      Math.min(VIEW_CONFIG.zoomMax, camera.position.length()),
+      Math.min(zoomMax, camera.position.length()),
     )
 
     from.current.copy(camera.position)
@@ -54,7 +57,7 @@ export default function CameraFaceFront({
     progress.current = 0
     animating.current = true
     onTransitionChange(true)
-  }, [request, enabled, camera, onTransitionChange])
+  }, [request, enabled, camera, onTransitionChange, zoomMax])
 
   useFrame((_, delta) => {
     if (!enabled || !animating.current) return

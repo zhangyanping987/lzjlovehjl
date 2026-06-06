@@ -21,6 +21,11 @@ export function getOuterDistance(isMobile: boolean): number {
     : VIEW_CONFIG.outer.distance
 }
 
+/** 手动缩放上限：手机需 ≥ mobileDistance，否则收放后无法回到初始远景 */
+export function getZoomMax(isMobile: boolean): number {
+  return isMobile ? VIEW_CONFIG.outer.mobileDistance : VIEW_CONFIG.zoomMax
+}
+
 export function viewModeFromDistance(distance: number): ViewMode {
   return distance <= VIEW_CONFIG.sphereRadius ? 'inner' : 'outer'
 }

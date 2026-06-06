@@ -4,6 +4,7 @@ interface LoadingOverlayProps {
   total: number
   isLoadingPhotos: boolean
   visible?: boolean
+  hint?: string
 }
 
 export default function LoadingOverlay({
@@ -12,6 +13,7 @@ export default function LoadingOverlay({
   total,
   isLoadingPhotos,
   visible = true,
+  hint,
 }: LoadingOverlayProps) {
   const done = loaded + failed
   const allReady = !isLoadingPhotos && total > 0 && done >= total
@@ -32,6 +34,9 @@ export default function LoadingOverlay({
               ? '图片加载中，即将开始动画...'
               : '图片加载中...'}
         </p>
+        {hint && !isLoadingPhotos && (
+          <p className="mt-1 text-xs text-zinc-500">{hint}</p>
+        )}
         {!isLoadingPhotos && total > 0 && (
           <>
             <p className="mt-2 text-xs text-zinc-500">

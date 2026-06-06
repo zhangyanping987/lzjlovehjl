@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { Photo } from '../data/photos'
+import { PRELOAD_CONCURRENCY } from '../constants/loading'
 
 const LOAD_TIMEOUT_MS = 15000
 
@@ -7,6 +8,22 @@ interface UsePhotoPreloadOptions {
   photos: Photo[]
   enabled: boolean
   onProgress: (loaded: number, failed: number, total: number) => void
+}
+
+function loadImage(url: string): Promise<'ok' | 'fail'> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const timer = window.setTimeout(() => resolve('fail'), LOAD_TIMEOUT_MS)
+
+    const finish = (result: 'ok' | 'fail') => {
+      window.clearTimeout(timer)
+      resolve(result)
+    }
+
+    img.onload = () => finish('ok')
+    img.onerror = () => finish('fail')
+    img.src = url
+  })
 }
 
 export function usePhotoPreload({
@@ -21,7 +38,7 @@ export function usePhotoPreload({
     let failed = 0
     const total = photos.length
     let cancelled = false
-    const timers: number[] = []
+    let cursor = 0
 
     onProgress(0, 0, total)
 
@@ -29,36 +46,26 @@ export function usePhotoPreload({
       if (!cancelled) onProgress(loaded, failed, total)
     }
 
-    for (const photo of photos) {
-      const img = new Image()
+    const worker = async () => {
+      while (!cancelled) {
+        const index = cursor
+        cursor += 1
+        if (index >= total) return
 
-      const timer = window.setTimeout(() => {
-        if (cancelled || img.complete) return
-        failed++
-        report()
-      }, LOAD_TIMEOUT_MS)
-      timers.push(timer)
-
-      img.onload = () => {
-        window.clearTimeout(timer)
+        const result = await loadImage(photos[index].url)
         if (cancelled) return
-        loaded++
+
+        if (result === 'ok') loaded += 1
+        else failed += 1
         report()
       }
-
-      img.onerror = () => {
-        window.clearTimeout(timer)
-        if (cancelled) return
-        failed++
-        report()
-      }
-
-      img.src = photo.url
     }
+
+    const poolSize = Math.min(PRELOAD_CONCURRENCY, total)
+    void Promise.all(Array.from({ length: poolSize }, () => worker()))
 
     return () => {
       cancelled = true
-      for (const timer of timers) window.clearTimeout(timer)
     }
   }, [photos, enabled, onProgress])
 }

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 import { loadPhotos, type Photo } from './data/photos'
 import { usePhotoPreload } from './hooks/usePhotoPreload'
-import Scene from './components/Scene'
+import { getIntroMinReady } from './constants/loading'
+import { usePerformance } from './context/PerformanceContext'
 import IntroOverlay from './components/IntroOverlay'
 import Lightbox from './components/Lightbox'
 import LoadingOverlay from './components/LoadingOverlay'
@@ -14,6 +15,8 @@ import AboutButton from './components/AboutButton'
 import type { ViewMode } from './context/ViewModeContext'
 import type { AlbumShape } from './types/albumShape'
 import type { ImageRect } from './utils/lightboxRect'
+
+const Scene = lazy(() => import('./components/Scene'))
 
 const LETTER_SEEN_KEY = 'lzjlovehjl-letter-seen'
 
@@ -34,11 +37,13 @@ function markLetterSeen() {
 }
 
 export default function App() {
+  const { isMobile } = usePerformance()
   const [photos, setPhotos] = useState<Photo[]>([])
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(0)
   const [failed, setFailed] = useState(0)
+  const [preloaded, setPreloaded] = useState({ loaded: 0, failed: 0 })
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxOrigin, setLightboxOrigin] = useState<ImageRect | null>(null)
   const [introProgress, setIntroProgress] = useState(0)
@@ -50,7 +55,6 @@ export default function App() {
   const [viewTransitioning, setViewTransitioning] = useState(false)
   const [albumShape, setAlbumShape] = useState<AlbumShape>('sphere')
   const [faceFrontRequest, setFaceFrontRequest] = useState(0)
-  const [backgroundPreloadDone, setBackgroundPreloadDone] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(() => !readLetterSeen())
   const [letterDismissed, setLetterDismissed] = useState(() => readLetterSeen())
 
@@ -81,27 +85,28 @@ export default function App() {
         setPhotos(data)
         setLoaded(0)
         setFailed(0)
-        setBackgroundPreloadDone(false)
+        setPreloaded({ loaded: 0, failed: 0 })
       })
       .catch((err) => setLoadError(err instanceof Error ? err.message : '加载失败'))
       .finally(() => setIsLoadingPhotos(false))
   }, [])
 
-  const handleLoadProgress = useCallback(
-    (l: number, f: number, total: number) => {
+  const handlePreloadProgress = useCallback((l: number, f: number, _total: number) => {
+    setPreloaded({ loaded: l, failed: f })
+  }, [])
+
+  const handleSceneLoadProgress = useCallback(
+    (l: number, f: number, _total: number) => {
       setLoaded(l)
       setFailed(f)
-      if (total > 0 && l + f >= total) {
-        setBackgroundPreloadDone(true)
-      }
     },
     [],
   )
 
   usePhotoPreload({
     photos,
-    enabled: photos.length > 0 && !letterDismissed,
-    onProgress: handleLoadProgress,
+    enabled: isMobile && photos.length > 0 && !letterDismissed,
+    onProgress: handlePreloadProgress,
   })
 
   const handleAboutClose = useCallback(() => {
@@ -112,12 +117,18 @@ export default function App() {
     }
   }, [letterDismissed])
 
-  const assetsReady =
-    !isLoadingPhotos &&
-    photos.length > 0 &&
-    (backgroundPreloadDone || loaded + failed >= photos.length)
+  const introMinReady = getIntroMinReady(photos.length, isMobile)
+  const readyCount = Math.max(
+    preloaded.loaded + preloaded.failed,
+    loaded + failed,
+  )
 
-  const showScene = photos.length > 0 && letterDismissed
+  const assetsReady =
+    !isLoadingPhotos && photos.length > 0 && readyCount >= introMinReady
+
+  const warmupScene = photos.length > 0 && !isMobile && !letterDismissed
+  const mountScene = photos.length > 0 && (letterDismissed || warmupScene)
+  const sceneVisible = letterDismissed
 
   const handleSelect = useCallback(
     (_photo: Photo, index: number, origin: ImageRect) => {
@@ -143,29 +154,40 @@ export default function App() {
             </p>
           </div>
         </div>
-      ) : showScene ? (
-        <Scene
-          photos={photos}
-          onSelect={handleSelect}
-          onLoadProgress={handleLoadProgress}
-          assetsReady={assetsReady}
-          introEnabled={letterDismissed}
-          albumShape={albumShape}
-          faceFrontRequest={faceFrontRequest}
-          snapRequest={snapRequest}
-          snapTarget={snapTarget}
-          onViewModeChange={handleViewModeChange}
-          onTransitionChange={setViewTransitioning}
-          onIntroComplete={() => setIntroDone(true)}
-          onIntroProgress={(p) => {
-            setIntroVisible(true)
-            setIntroProgress(p)
-            if (p >= 1) {
-              window.setTimeout(() => setIntroVisible(false), 400)
-            }
+      ) : mountScene ? (
+        <div
+          className="absolute inset-0 z-[1]"
+          style={{
+            visibility: sceneVisible ? 'visible' : 'hidden',
+            pointerEvents: sceneVisible ? 'auto' : 'none',
           }}
-          interactive={lightboxIndex === null}
-        />
+        >
+          <Suspense fallback={null}>
+            <Scene
+              photos={photos}
+              onSelect={handleSelect}
+              onLoadProgress={handleSceneLoadProgress}
+              assetsReady={assetsReady}
+              introEnabled={letterDismissed}
+              warmup={warmupScene}
+              albumShape={albumShape}
+              faceFrontRequest={faceFrontRequest}
+              snapRequest={snapRequest}
+              snapTarget={snapTarget}
+              onViewModeChange={handleViewModeChange}
+              onTransitionChange={setViewTransitioning}
+              onIntroComplete={() => setIntroDone(true)}
+              onIntroProgress={(p) => {
+                setIntroVisible(true)
+                setIntroProgress(p)
+                if (p >= 1) {
+                  window.setTimeout(() => setIntroVisible(false), 400)
+                }
+              }}
+              interactive={lightboxIndex === null && sceneVisible}
+            />
+          </Suspense>
+        </div>
       ) : !isLoadingPhotos && photos.length === 0 ? (
         <div className="flex h-full items-center justify-center text-zinc-500">
           暂无图片，请运行 npm run fetch-photos
@@ -173,11 +195,12 @@ export default function App() {
       ) : null}
 
       <LoadingOverlay
-        loaded={loaded}
-        failed={failed}
+        loaded={readyCount}
+        failed={Math.max(failed, preloaded.failed)}
         total={photos.length}
         isLoadingPhotos={isLoadingPhotos}
-        visible={letterDismissed}
+        visible={letterDismissed && !assetsReady}
+        hint={`${Math.min(readyCount, introMinReady)}/${introMinReady} 张就绪即可进入`}
       />
 
       <IntroOverlay visible={introVisible} progress={introProgress} />

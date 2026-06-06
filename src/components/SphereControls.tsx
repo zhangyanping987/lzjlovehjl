@@ -10,9 +10,12 @@ import type { TrackballControls as TrackballControlsImpl } from 'three-stdlib'
 import { Vector3 } from 'three'
 import {
   VIEW_CONFIG,
+  getOuterDistance,
+  getZoomMax,
   viewModeFromDistance,
   type ViewMode,
 } from '../context/ViewModeContext'
+import { usePerformance } from '../context/PerformanceContext'
 
 /** 改这里即可生效 — 不要给 TrackballControls 传 rotateSpeed prop（会被 React 覆盖） */
 export const CONTROL_CONFIG = {
@@ -41,10 +44,12 @@ const SphereControls = forwardRef<SphereControlsHandle, SphereControlsProps>(
     ref,
   ) {
     const { camera } = useThree()
+    const { isMobile } = usePerformance()
     const controlsRef = useRef<TrackballControlsImpl>(null)
     const zoneRef = useRef<ViewMode>('outer')
 
-    const { zoomMin, zoomMax } = VIEW_CONFIG
+    const zoomMin = VIEW_CONFIG.zoomMin
+    const zoomMax = getZoomMax(isMobile)
 
     useImperativeHandle(
       ref,
@@ -53,7 +58,7 @@ const SphereControls = forwardRef<SphereControlsHandle, SphereControlsProps>(
           const controls = controlsRef.current
           const distance = Math.max(
             zoomMin,
-            Math.min(zoomMax, camera.position.length() || getDefaultDistance()),
+            Math.min(zoomMax, camera.position.length() || getOuterDistance(isMobile)),
           )
           const dir =
             direction.lengthSq() > 1e-6
@@ -71,7 +76,7 @@ const SphereControls = forwardRef<SphereControlsHandle, SphereControlsProps>(
           }
         },
       }),
-      [camera, zoomMin, zoomMax],
+      [camera, zoomMin, zoomMax, isMobile],
     )
 
     useEffect(() => {
@@ -132,9 +137,5 @@ const SphereControls = forwardRef<SphereControlsHandle, SphereControlsProps>(
     )
   },
 )
-
-function getDefaultDistance() {
-  return VIEW_CONFIG.outer.distance
-}
 
 export default SphereControls

@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { IntroContext } from '../context/IntroContext'
-import { PerformanceProvider, usePerformance } from '../context/PerformanceContext'
+import { usePerformance } from '../context/PerformanceContext'
 import { getOuterDistance, type ViewMode } from '../context/ViewModeContext'
 import type { AlbumShape } from '../types/albumShape'
 import type { Photo } from '../data/photos'
@@ -22,6 +22,8 @@ interface SceneProps {
   interactive?: boolean
   assetsReady: boolean
   introEnabled?: boolean
+  /** 读信期间后台预热：低帧率、无特效 */
+  warmup?: boolean
   albumShape: AlbumShape
   snapRequest: number
   snapTarget: ViewMode
@@ -39,6 +41,7 @@ function SceneContent({
   interactive = true,
   assetsReady,
   introEnabled = true,
+  warmup = false,
   albumShape,
   snapRequest,
   snapTarget,
@@ -92,7 +95,7 @@ function SceneContent({
       value={{ progress: introProgress, active: introActive, done: introDone }}
     >
       <ambientLight intensity={0.45} />
-      <SceneEffects />
+      {!warmup && <SceneEffects />}
       <IntroAnimation
         active={introActive}
         onProgress={handleIntroProgress}
@@ -133,13 +136,19 @@ function SceneContent({
   )
 }
 
-function SceneCanvas({ interactive = true, ...props }: SceneProps) {
+function SceneCanvas({
+  interactive = true,
+  introEnabled = true,
+  warmup = false,
+  ...props
+}: SceneProps) {
   const { isMobile } = usePerformance()
   const cameraFov = isMobile ? 68 : 60
+  const animate = introEnabled && !warmup
 
   return (
     <div
-      className="absolute inset-0 z-[1] transition-opacity duration-200"
+      className="absolute inset-0 transition-opacity duration-200"
       style={{
         pointerEvents: interactive ? 'auto' : 'none',
       }}
@@ -147,13 +156,20 @@ function SceneCanvas({ interactive = true, ...props }: SceneProps) {
       <Canvas
         camera={{ position: [0, 0, getOuterDistance(isMobile)], fov: cameraFov }}
         dpr={isMobile ? 1 : [1, 2]}
-        gl={{ antialias: !isMobile, alpha: true, powerPreference: isMobile ? 'low-power' : 'high-performance' }}
+        frameloop={animate ? 'always' : 'demand'}
+        gl={{
+          antialias: !isMobile && !warmup,
+          alpha: true,
+          powerPreference: isMobile ? 'low-power' : 'high-performance',
+        }}
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>
           <SceneContent
             {...props}
             interactive={interactive}
+            introEnabled={introEnabled}
+            warmup={warmup}
           />
         </Suspense>
       </Canvas>
@@ -162,9 +178,5 @@ function SceneCanvas({ interactive = true, ...props }: SceneProps) {
 }
 
 export default function Scene(props: SceneProps) {
-  return (
-    <PerformanceProvider>
-      <SceneCanvas {...props} />
-    </PerformanceProvider>
-  )
+  return <SceneCanvas {...props} />
 }
