@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
-import { VIEW_CONFIG, type ViewMode } from '../context/ViewModeContext'
+import { usePerformance } from '../context/PerformanceContext'
+import { VIEW_CONFIG, getOuterDistance, type ViewMode } from '../context/ViewModeContext'
 
 function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
@@ -22,9 +23,10 @@ export default function CameraViewTransition({
   onTransitionChange,
 }: CameraViewTransitionProps) {
   const { camera } = useThree()
+  const { isMobile } = usePerformance()
   const direction = useRef(new Vector3())
   const fromDistance = useRef(0)
-  const toDistance = useRef<number>(VIEW_CONFIG.outer.distance)
+  const toDistance = useRef<number>(getOuterDistance(isMobile))
   const progress = useRef(1)
   const animating = useRef(false)
 
@@ -34,7 +36,7 @@ export default function CameraViewTransition({
     const targetDist =
       snapTarget === 'inner'
         ? VIEW_CONFIG.inner.distance
-        : VIEW_CONFIG.outer.distance
+        : getOuterDistance(isMobile)
 
     const dist = camera.position.length()
     if (dist > 0.001) {
@@ -48,7 +50,7 @@ export default function CameraViewTransition({
     progress.current = 0
     animating.current = true
     onTransitionChange(true)
-  }, [snapRequest, snapTarget, enabled, camera, onTransitionChange])
+  }, [snapRequest, snapTarget, enabled, camera, onTransitionChange, isMobile])
 
   useFrame((_, delta) => {
     if (!enabled || !animating.current) return

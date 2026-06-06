@@ -11,9 +11,15 @@ export const VIEW_CONFIG = {
   /** 按钮切换视角过渡时长（秒） */
   transitionDuration: 0.85,
   /** 按钮快速跳转距离 */
-  outer: { distance: 30 },
+  outer: { distance: 30, mobileDistance: 38 },
   inner: { distance: 1 },
 } as const
+
+export function getOuterDistance(isMobile: boolean): number {
+  return isMobile
+    ? VIEW_CONFIG.outer.mobileDistance
+    : VIEW_CONFIG.outer.distance
+}
 
 export function viewModeFromDistance(distance: number): ViewMode {
   return distance <= VIEW_CONFIG.sphereRadius ? 'inner' : 'outer'

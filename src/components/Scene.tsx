@@ -2,7 +2,7 @@ import { Suspense, useCallback, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { IntroContext } from '../context/IntroContext'
 import { PerformanceProvider, usePerformance } from '../context/PerformanceContext'
-import { type ViewMode } from '../context/ViewModeContext'
+import { getOuterDistance, type ViewMode } from '../context/ViewModeContext'
 import type { AlbumShape } from '../types/albumShape'
 import type { Photo } from '../data/photos'
 import type { ImageRect } from '../utils/lightboxRect'
@@ -11,7 +11,7 @@ import CameraFaceFront from './CameraFaceFront'
 import IntroAnimation from './IntroAnimation'
 import SceneEffects from './SceneEffects'
 import PhotoSphere from './PhotoSphere'
-import SphereControls from './SphereControls'
+import SphereControls, { type SphereControlsHandle } from './SphereControls'
 
 interface SceneProps {
   photos: Photo[]
@@ -51,6 +51,7 @@ function SceneContent({
   const [transitioning, setTransitioning] = useState(false)
   const transitionLocks = useRef(0)
   const lastProgressUpdate = useRef(0)
+  const controlsRef = useRef<SphereControlsHandle>(null)
   const introActive = assetsReady && introEnabled && !introDone
   const controlsEnabled = interactive && introDone && !transitioning
 
@@ -119,9 +120,11 @@ function SceneContent({
       <CameraFaceFront
         request={faceFrontRequest}
         enabled={introDone}
+        controlsRef={controlsRef}
         onTransitionChange={handleTransitionChange}
       />
       <SphereControls
+        ref={controlsRef}
         enabled={controlsEnabled}
         suspendViewSync={transitioning}
         onViewModeChange={onViewModeChange}
@@ -132,6 +135,7 @@ function SceneContent({
 
 function SceneCanvas({ interactive = true, ...props }: SceneProps) {
   const { isMobile } = usePerformance()
+  const cameraFov = isMobile ? 68 : 60
 
   return (
     <div
@@ -141,7 +145,7 @@ function SceneCanvas({ interactive = true, ...props }: SceneProps) {
       }}
     >
       <Canvas
-        camera={{ position: [0, 0, 42], fov: 60 }}
+        camera={{ position: [0, 0, getOuterDistance(isMobile)], fov: cameraFov }}
         dpr={isMobile ? 1 : [1, 2]}
         gl={{ antialias: !isMobile, alpha: true, powerPreference: isMobile ? 'low-power' : 'high-performance' }}
         style={{ background: 'transparent' }}

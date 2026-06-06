@@ -1,6 +1,8 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import type { Group, PointLight } from 'three'
+import { usePerformance } from '../context/PerformanceContext'
+import { getOuterDistance } from '../context/ViewModeContext'
 
 /** 进入网站动画 — 改 duration 即可（秒，越大越慢） */
 export const INTRO_CONFIG = {
@@ -8,7 +10,6 @@ export const INTRO_CONFIG = {
 } as const
 
 const DURATION = INTRO_CONFIG.duration
-const END_DISTANCE = 30
 
 function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v))
@@ -42,7 +43,7 @@ interface IntroKeyframe {
   lightIntensity: number
 }
 
-function sampleIntro(raw: number): IntroKeyframe {
+function sampleIntro(raw: number, endDistance: number): IntroKeyframe {
   if (raw < 0.18) {
     const p = easeOutCubic(raw / 0.18)
     return {
@@ -86,7 +87,7 @@ function sampleIntro(raw: number): IntroKeyframe {
   const p = easeOutCubic((raw - 0.78) / 0.22)
   return {
     scale: 1,
-    distance: lerp(16, END_DISTANCE, p),
+    distance: lerp(16, endDistance, p),
     orbitY: lerp(Math.PI * 0.15, 0, p),
     orbitX: lerp(0.08, 0, p),
     spinY: lerp(Math.PI * 5.2, 0, p),
@@ -109,6 +110,8 @@ export default function IntroAnimation({
   children,
 }: IntroAnimationProps) {
   const { camera } = useThree()
+  const { isMobile } = usePerformance()
+  const endDistance = getOuterDistance(isMobile)
   const groupRef = useRef<Group>(null)
   const lightRef = useRef<PointLight>(null)
   const startTime = useRef<number | null>(null)
@@ -136,7 +139,7 @@ export default function IntroAnimation({
 
     onProgress(raw)
 
-    const k = sampleIntro(raw)
+    const k = sampleIntro(raw, endDistance)
 
     camera.position.set(
       k.distance * Math.sin(k.orbitY) * Math.cos(k.orbitX),
@@ -158,7 +161,8 @@ export default function IntroAnimation({
 
     if (raw >= 1 && !completed.current) {
       completed.current = true
-      camera.position.set(0, 0, END_DISTANCE)
+      camera.position.set(0, 0, endDistance)
+      camera.up.set(0, 1, 0)
       camera.lookAt(0, 0, 0)
       camera.updateProjectionMatrix()
       if (groupRef.current) {
