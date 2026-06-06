@@ -24,7 +24,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[99990] flex items-end justify-center p-4 sm:items-center sm:p-6"
+      className="fixed inset-0 z-[99990] flex items-center justify-center p-4 sm:p-6"
       onClick={onClose}
     >
       <div
@@ -50,7 +50,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
           </button>
         </header>
 
-        <div className="overflow-y-auto px-5 py-4 text-sm leading-[1.85] text-zinc-300 sm:text-[15px]">
+        <div className="overflow-y-auto px-5 py-4 text-sm leading-[1.85] text-zinc-300 sm:text-[15px] [&_p]:indent-[2em] [&_p.text-center]:indent-0">
           <p className="mb-3 text-zinc-200">
             生日快乐。这是一份独属于你的小礼物，我花心思把关于贺峻霖的许多瞬间收进深海倒映的一片星空，再捧到你面前。
           </p>
@@ -66,7 +66,7 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
               粉丝叫深海，应援色叫春海月明。于是整站是深海底色的暗蓝，再晕开青绿与月银——不是炫目的灯牌，而是夜里抬头时，海面上那层安静又温柔的光。气泡缓缓上升，星点明灭，偶尔有流星划过，像陪他在同一片天空下多站了一会儿。
             </p>
             <p>
-              进入网站时，会先等待他的每一个身影都准备好，再慢慢潜入。那一路的靠近与旋转，是想把「去见他的路上」的心情表达出来，就像跳动的心脏，由慢到快，由远到近，可以让你从远处一点一点游近那团光。
+              进入深海时，会先等待他的每一个身影都准备好，再慢慢潜入。那一路的靠近与旋转，是想把「去见他的路上」的心情表达出来，就像跳动的心脏，由慢到快，由远到近，可以让你从远处一点一点游近那团光。
             </p>
           </section>
 
@@ -131,9 +131,14 @@ export default function AboutPanel({ open, onClose }: AboutPanelProps) {
             </p>
           </section>
 
-          <p className="border-t border-white/10 pt-4 text-zinc-400">
-            如果这些细节让你在某一刻觉得柔软，那这一页想做的事就完成了。贺峻霖值得被温柔地记住——而你，值得收到这样一份用心准备的礼物。希望你喜欢。
-          </p>
+          <div className="border-t border-white/10 pt-4">
+            <p className="mb-4 text-center text-zinc-300">
+              也许不会每天都有惊喜，但是惊喜的是，每天都有你。
+            </p>
+            <p className="text-zinc-400">
+              如果这些细节让你在某一刻觉得柔软，那这一页想做的事就完成了。贺峻霖值得被温柔地记住——而你，值得收到这样一份用心准备的礼物。希望你喜欢。
+            </p>
+          </div>
         </div>
       </article>
     </div>,
