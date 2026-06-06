@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { loadPhotos, type Photo } from './data/photos'
+import { usePhotoPreload } from './hooks/usePhotoPreload'
 import Scene from './components/Scene'
 import IntroOverlay from './components/IntroOverlay'
 import Lightbox from './components/Lightbox'
@@ -49,6 +50,7 @@ export default function App() {
   const [viewTransitioning, setViewTransitioning] = useState(false)
   const [albumShape, setAlbumShape] = useState<AlbumShape>('sphere')
   const [faceFrontRequest, setFaceFrontRequest] = useState(0)
+  const [backgroundPreloadDone, setBackgroundPreloadDone] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(() => !readLetterSeen())
   const [letterDismissed, setLetterDismissed] = useState(() => readLetterSeen())
 
@@ -75,18 +77,32 @@ export default function App() {
 
   useEffect(() => {
     loadPhotos()
-      .then(setPhotos)
+      .then((data) => {
+        setPhotos(data)
+        setLoaded(0)
+        setFailed(0)
+        setBackgroundPreloadDone(false)
+      })
       .catch((err) => setLoadError(err instanceof Error ? err.message : '加载失败'))
       .finally(() => setIsLoadingPhotos(false))
   }, [])
 
   const handleLoadProgress = useCallback(
-    (l: number, f: number, _total: number) => {
+    (l: number, f: number, total: number) => {
       setLoaded(l)
       setFailed(f)
+      if (total > 0 && l + f >= total) {
+        setBackgroundPreloadDone(true)
+      }
     },
     [],
   )
+
+  usePhotoPreload({
+    photos,
+    enabled: photos.length > 0 && !letterDismissed,
+    onProgress: handleLoadProgress,
+  })
 
   const handleAboutClose = useCallback(() => {
     setAboutOpen(false)
@@ -97,7 +113,11 @@ export default function App() {
   }, [letterDismissed])
 
   const assetsReady =
-    !isLoadingPhotos && photos.length > 0 && loaded + failed >= photos.length
+    !isLoadingPhotos &&
+    photos.length > 0 &&
+    (backgroundPreloadDone || loaded + failed >= photos.length)
+
+  const showScene = photos.length > 0 && letterDismissed
 
   const handleSelect = useCallback(
     (_photo: Photo, index: number, origin: ImageRect) => {
@@ -112,6 +132,8 @@ export default function App() {
       <StarfieldBackground />
       <HeartTrail enabled={introDone && lightboxIndex === null && !aboutOpen} />
 
+      <AboutPanel open={aboutOpen} onClose={handleAboutClose} />
+
       {loadError ? (
         <div className="flex h-full items-center justify-center px-6 text-center">
           <div>
@@ -121,7 +143,7 @@ export default function App() {
             </p>
           </div>
         </div>
-      ) : photos.length > 0 ? (
+      ) : showScene ? (
         <Scene
           photos={photos}
           onSelect={handleSelect}
@@ -144,7 +166,7 @@ export default function App() {
           }}
           interactive={lightboxIndex === null}
         />
-      ) : !isLoadingPhotos ? (
+      ) : !isLoadingPhotos && photos.length === 0 ? (
         <div className="flex h-full items-center justify-center text-zinc-500">
           暂无图片，请运行 npm run fetch-photos
         </div>
@@ -179,8 +201,6 @@ export default function App() {
           </div>
         </>
       )}
-
-      <AboutPanel open={aboutOpen} onClose={handleAboutClose} />
 
       {lightboxIndex !== null && (
         <Lightbox
